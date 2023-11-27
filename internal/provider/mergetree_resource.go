@@ -1,26 +1,3 @@
-/*
-CREATE TABLE [IF NOT EXISTS] [db.]table_name [ON CLUSTER cluster]
-(
-    name1 [type1] [DEFAULT|MATERIALIZED|ALIAS|EPHEMERAL expr1] [TTL expr1] [CODEC(codec1)] [[NOT] NULL|PRIMARY KEY],
-    name2 [type2] [DEFAULT|MATERIALIZED|ALIAS|EPHEMERAL expr2] [TTL expr2] [CODEC(codec2)] [[NOT] NULL|PRIMARY KEY],
-    ...
-    INDEX index_name1 expr1 TYPE type1(...) [GRANULARITY value1],
-    INDEX index_name2 expr2 TYPE type2(...) [GRANULARITY value2],
-    ...
-    PROJECTION projection_name_1 (SELECT <COLUMN LIST EXPR> [GROUP BY] [ORDER BY]),
-    PROJECTION projection_name_2 (SELECT <COLUMN LIST EXPR> [GROUP BY] [ORDER BY])
-) ENGINE = MergeTree()
-ORDER BY expr
-[PARTITION BY expr]
-[PRIMARY KEY expr]
-[SAMPLE BY expr]
-[TTL expr
-    [DELETE|TO DISK 'xxx'|TO VOLUME 'xxx' [, ...] ]
-    [WHERE conditions]
-    [GROUP BY key_expr [SET v1 = aggr_func(v1) [, v2 = aggr_func(v2) ...]] ] ]
-[SETTINGS name=value, ...]
-*/
-
 package provider
 
 import (

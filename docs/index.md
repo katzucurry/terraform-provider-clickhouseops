@@ -13,8 +13,11 @@ description: |-
 ## Example Usage
 
 ```terraform
-provider "scaffolding" {
-  # example configuration here
+provider "clickhouse" {
+  host     = "localhost"
+  port     = 8123
+  username = "default"
+  password = ""
 }
 ```
 

@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    clickhouse = {
-      version = "0.1.0"
-      source  = "hashicorp.com/awesomenessnil/clickhouse"
-    }
-  }
-}
-
 provider "clickhouse" {}
 
 resource "clickhouse_database" "new_database" {
@@ -14,8 +5,8 @@ resource "clickhouse_database" "new_database" {
   comment = "new db test comment"
 }
 
-resource "clickhouse_mergetree" "new_table1" {
-  name          = "test_merge_tree"
+resource "clickhouse_replacingmergetree" "new_table" {
+  name          = "new_table"
   database_name = clickhouse_database.new_database.name
   columns = [{
     name = "a"

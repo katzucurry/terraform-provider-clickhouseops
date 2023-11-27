@@ -1,29 +1,3 @@
-// CREATE TABLE [IF NOT EXISTS] [db.]table_name [ON CLUSTER cluster]
-// (
-//     name1 [type1] [ALIAS expr1],
-//     name2 [type2] [ALIAS expr2],
-//     ...
-// ) ENGINE = Kafka()
-// SETTINGS
-//     kafka_broker_list = 'host:port',
-//     kafka_topic_list = 'topic1,topic2,...',
-//     kafka_group_name = 'group_name',
-//     kafka_format = 'data_format'[,]
-//     [kafka_row_delimiter = 'delimiter_symbol',]
-//     [kafka_schema = '',]
-//     [kafka_num_consumers = N,]
-//     [kafka_max_block_size = 0,]
-//     [kafka_skip_broken_messages = N,]
-//     [kafka_commit_every_batch = 0,]
-//     [kafka_client_id = '',]
-//     [kafka_poll_timeout_ms = 0,]
-//     [kafka_poll_max_batch_size = 0,]
-//     [kafka_flush_interval_ms = 0,]
-//     [kafka_thread_per_consumer = 0,]
-//     [kafka_handle_error_mode = 'default',]
-//     [kafka_commit_on_select = false,]
-//     [kafka_max_rows_per_message = 1];
-
 package provider
 
 import (
