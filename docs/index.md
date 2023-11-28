@@ -15,7 +15,7 @@ description: |-
 ```terraform
 provider "clickhouse" {
   host     = "localhost"
-  port     = 8123
+  port     = 9000
   username = "default"
   password = ""
 }

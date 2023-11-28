@@ -4,10 +4,20 @@ import (
 	"bytes"
 	"database/sql"
 	"html/template"
+	"reflect"
 )
 
+var functions = template.FuncMap{
+	"size": func(a any) int {
+		if reflect.TypeOf(a).Kind() == reflect.Slice {
+			return reflect.ValueOf(a).Len() - 1
+		}
+		return -1
+	},
+}
+
 func RenderTemplate(queryTemplate string, input any) (*string, error) {
-	tpl, err := template.New("input").Parse(queryTemplate)
+	tpl, err := template.New("input").Funcs(functions).Parse(queryTemplate)
 	if err != nil {
 		return nil, err
 	}

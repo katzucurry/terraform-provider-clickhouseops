@@ -130,6 +130,7 @@ func (p *ClickhouseProvider) Resources(ctx context.Context) []func() resource.Re
 		NewMergeTreeResource,
 		NewKafkaEngineResource,
 		NewReplacingMergeTree,
+		NewNamedCollection,
 	}
 }
 
