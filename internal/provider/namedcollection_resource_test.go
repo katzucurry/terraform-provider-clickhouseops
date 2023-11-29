@@ -24,27 +24,21 @@ func TestAccNamedCollectionResource(t *testing.T) {
 }
 
 const testAccNamedCollectionResourceConfig = `
-resource "clickhouse_database" "test" {
-	name = "test"
-}
-
 resource "clickhouse_namedcollection" "test" {
-  name = "test"
-  keyvaluepairs = [{
-	key = "test_key1"
-	value = "test_value1"
-	is_not_overridable = true
-  },{
-	key = "test_key2"
-	value = "test_value2"
-  }]
-  sensitive_keyvaluepairs = [{
-	key = "test_key3"
-	value = "test_value3"
-	is_not_overridable = true
-  },{
-	key = "test_key4"
-	value = "test_value4"
-  }]
-}
+	name = "test"
+	keyvaluepairs = [{
+	  key = "host"
+	  value = "localhost"
+	},{
+	  key = "port"
+	  value = "5432"
+	},{
+	  key = "user"
+	  value = "user"
+	}]
+	sensitive_keyvaluepairs = [{
+	  key = "password"
+	  value = "password"
+	}]
+  }
 `

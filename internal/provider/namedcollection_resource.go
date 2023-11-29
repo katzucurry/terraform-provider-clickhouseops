@@ -157,7 +157,7 @@ CREATE NAMED COLLECTION IF NOT EXISTS "{{.Name.ValueString}}"{{if not .ClusterNa
 {{$size := size .KeyValuePairs}}
 {{$size_sensitive := size .SensitiveKeyValuePairs}}
 {{range $i, $e := .KeyValuePairs}}
-"{{$e.Key.ValueString}}"='{{$e.Value.ValueString}}'{{if or (lt $i $size) (gt $size_sensitive 0)}},{{end}}
+"{{$e.Key.ValueString}}"='{{$e.Value.ValueString}}'{{if or (lt $i $size) (gt $size_sensitive -1)}},{{end}}
 {{end}}
 {{range $i, $e := .SensitiveKeyValuePairs}}
 "{{$e.Key.ValueString}}"='{{$e.Value.ValueString}}'{{if lt $i $size_sensitive}},{{end}}
