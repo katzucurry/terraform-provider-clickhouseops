@@ -23,6 +23,7 @@ Clickhouse Named Collection to store secret
 ### Optional
 
 - `cluster_name` (String) Clickhouse Cluster Name
+- `sensitive_keyvaluepairs` (Attributes List, Sensitive) Clickhouse Named Collection Sensitive Key-Value Pairs (see [below for nested schema](#nestedatt--sensitive_keyvaluepairs))
 
 ### Read-Only
 
@@ -30,6 +31,19 @@ Clickhouse Named Collection to store secret
 
 <a id="nestedatt--keyvaluepairs"></a>
 ### Nested Schema for `keyvaluepairs`
+
+Required:
+
+- `key` (String) Clickhouse Named Collection Key
+- `value` (String) Clickhouse Named Collection Value
+
+Optional:
+
+- `is_not_overridable` (Boolean) Clickhouse Named Collection Disable Overridden
+
+
+<a id="nestedatt--sensitive_keyvaluepairs"></a>
+### Nested Schema for `sensitive_keyvaluepairs`
 
 Required:
 

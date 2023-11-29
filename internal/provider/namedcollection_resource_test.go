@@ -38,5 +38,13 @@ resource "clickhouse_namedcollection" "test" {
 	key = "test_key2"
 	value = "test_value2"
   }]
+  sensitive_keyvaluepairs = [{
+	key = "test_key3"
+	value = "test_value3"
+	is_not_overridable = true
+  },{
+	key = "test_key4"
+	value = "test_value4"
+  }]
 }
 `

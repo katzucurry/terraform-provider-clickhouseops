@@ -31,10 +31,11 @@ type NamedCollection struct {
 }
 
 type NamedCollectionModel struct {
-	ID            types.String         `tfsdk:"id"`
-	Name          types.String         `tfsdk:"name"`
-	ClusterName   types.String         `tfsdk:"cluster_name"`
-	KeyValuePairs []KeyValuePairsModel `tfsdk:"keyvaluepairs"`
+	ID                     types.String         `tfsdk:"id"`
+	Name                   types.String         `tfsdk:"name"`
+	ClusterName            types.String         `tfsdk:"cluster_name"`
+	KeyValuePairs          []KeyValuePairsModel `tfsdk:"keyvaluepairs"`
+	SensitiveKeyValuePairs []KeyValuePairsModel `tfsdk:"sensitive_keyvaluepairs"`
 }
 
 type KeyValuePairsModel struct {
@@ -95,6 +96,30 @@ func (r *NamedCollection) Schema(ctx context.Context, req resource.SchemaRequest
 					listplanmodifier.RequiresReplace(),
 				},
 			},
+			"sensitive_keyvaluepairs": schema.ListNestedAttribute{
+				MarkdownDescription: "Clickhouse Named Collection Sensitive Key-Value Pairs",
+				Optional:            true,
+				Sensitive:           true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							MarkdownDescription: "Clickhouse Named Collection Key",
+							Required:            true,
+						},
+						"value": schema.StringAttribute{
+							MarkdownDescription: "Clickhouse Named Collection Value",
+							Required:            true,
+						},
+						"is_not_overridable": schema.BoolAttribute{
+							MarkdownDescription: "Clickhouse Named Collection Disable Overridden",
+							Optional:            true,
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
+			},
 		},
 	}
 }
@@ -130,8 +155,12 @@ key_name3 = 'some value' [[NOT] OVERRIDABLE],
 const ddlCreateNamedCollectionTemplate = `
 CREATE NAMED COLLECTION IF NOT EXISTS "{{.Name.ValueString}}"{{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} AS
 {{$size := size .KeyValuePairs}}
+{{$size_sensitive := size .SensitiveKeyValuePairs}}
 {{range $i, $e := .KeyValuePairs}}
-"{{$e.Key.ValueString}}"='{{$e.Value.ValueString}}'{{if lt $i $size}},{{end}}
+"{{$e.Key.ValueString}}"='{{$e.Value.ValueString}}'{{if or (lt $i $size) (gt $size_sensitive 0)}},{{end}}
+{{end}}
+{{range $i, $e := .SensitiveKeyValuePairs}}
+"{{$e.Key.ValueString}}"='{{$e.Value.ValueString}}'{{if lt $i $size_sensitive}},{{end}}
 {{end}}
 `
 
