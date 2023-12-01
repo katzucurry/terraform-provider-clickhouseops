@@ -16,10 +16,9 @@ import (
 )
 
 var (
-	_ resource.Resource                   = &PostgreSQL{}
-	_ resource.ResourceWithConfigure      = &PostgreSQL{}
-	_ resource.ResourceWithImportState    = &PostgreSQL{}
-	_ resource.ResourceWithValidateConfig = &PostgreSQL{}
+	_ resource.Resource                = &PostgreSQL{}
+	_ resource.ResourceWithConfigure   = &PostgreSQL{}
+	_ resource.ResourceWithImportState = &PostgreSQL{}
 )
 
 func NewPostgreSQL() resource.Resource {
@@ -88,17 +87,17 @@ func (r *PostgreSQL) Schema(ctx context.Context, req resource.SchemaRequest, res
 				},
 			},
 			"columns": schema.ListNestedAttribute{
-				MarkdownDescription: "Clickhouse PostgreSQL column list",
+				MarkdownDescription: "Clickhouse Table Column List",
 				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							MarkdownDescription: "Clickhouse table column name",
+							MarkdownDescription: "Clickhouse Table Column name",
 							Required:            true,
 						},
 						"type": schema.
 							StringAttribute{
-							MarkdownDescription: "Clickhouse table column type",
+							MarkdownDescription: "Clickhouse Table Column type",
 							Required:            true,
 						},
 					},
@@ -199,9 +198,9 @@ CREATE TABLE [IF NOT EXISTS] [db.]table_name [ON CLUSTER cluster]
 */
 const ddlCreatePostgreSQLTemplate = `
 CREATE TABLE IF NOT EXISTS "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}"{{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} (
-{{range .Columns}}
-"{{.Name.ValueString}}" {{.Type.ValueString}},
-{{end}}
+	{{range .Columns}}
+	"{{.Name.ValueString}}" {{.Type.ValueString}},
+	{{end}}
 ) ENGINE = PostgreSQL(
 {{if not .NamedCollectionName.IsNull}}{{.NamedCollectionName.ValueString}}
 {{if not .PostgreSQLHost.IsNull}},host={{.PostgreSQLHost.ValueString}}{{end}}
@@ -234,6 +233,19 @@ func (r *PostgreSQL) Create(ctx context.Context, req resource.CreateRequest, res
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if data.NamedCollectionName.IsNull() && (data.PostgreSQLHost.IsNull() ||
+		data.PostgreSQLPort.IsNull() ||
+		data.PostgreSQLDatabaseName.IsNull() ||
+		data.PostgreSQLTableName.IsNull() ||
+		data.PostgreSQLUsername.IsNull() ||
+		data.PostgreSQLPassword.IsNull()) {
+		resp.Diagnostics.AddError(
+			"Missing Attribute Configuration",
+			"Expect a Clickhouse named collection or the complete set of PostgreSQL connection parameters",
+		)
 		return
 	}
 
@@ -317,54 +329,4 @@ func (r *PostgreSQL) Delete(ctx context.Context, req resource.DeleteRequest, res
 
 func (r *PostgreSQL) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-func (r *PostgreSQL) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	var data *PostgreSQLModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if !data.NamedCollectionName.IsNull() {
-		return
-	}
-
-	if !data.PostgreSQLHost.IsNull() &&
-		!data.PostgreSQLPort.IsNull() &&
-		!data.PostgreSQLDatabaseName.IsNull() &&
-		!data.PostgreSQLTableName.IsNull() &&
-		!data.PostgreSQLUsername.IsNull() &&
-		!data.PostgreSQLPassword.IsNull() {
-		return
-	}
-
-	var errorPath path.Path
-
-	if data.PostgreSQLPassword.IsNull() {
-		errorPath = path.Root("postgresql_password")
-	}
-	if data.PostgreSQLUsername.IsNull() {
-		errorPath = path.Root("postgresql_username")
-	}
-	if data.PostgreSQLTableName.IsNull() {
-		errorPath = path.Root("postgresql_table_name")
-	}
-	if data.PostgreSQLDatabaseName.IsNull() {
-		errorPath = path.Root("postgresql_database_name")
-	}
-	if data.PostgreSQLPort.IsNull() {
-		errorPath = path.Root("postgresql_port")
-	}
-	if data.PostgreSQLHost.IsNull() {
-		errorPath = path.Root("postgresql_host")
-	}
-
-	resp.Diagnostics.AddAttributeError(
-		errorPath,
-		"Missing Attribute Configuration",
-		"Expect a Clickhouse named collection or the complete set of PostgreSQL connection parameters",
-	)
 }

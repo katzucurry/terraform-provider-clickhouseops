@@ -38,7 +38,7 @@ resource "clickhouse_postgresql" "new_table" {
 
 ### Required
 
-- `columns` (Attributes List) Clickhouse PostgreSQL column list (see [below for nested schema](#nestedatt--columns))
+- `columns` (Attributes List) Clickhouse Table Column List (see [below for nested schema](#nestedatt--columns))
 - `database_name` (String) Clickhouse PostgreSQL database name
 - `name` (String) Clickhouse PostgreSQL name
 
@@ -63,5 +63,5 @@ resource "clickhouse_postgresql" "new_table" {
 
 Required:
 
-- `name` (String) Clickhouse table column name
-- `type` (String) Clickhouse table column type
+- `name` (String) Clickhouse Table Column name
+- `type` (String) Clickhouse Table Column type

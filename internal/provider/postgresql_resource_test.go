@@ -22,7 +22,8 @@ func TestAccPostgreSQLResource(t *testing.T) {
 	})
 }
 
-const testAccPostgreSQLResourceConfig = `
+const (
+	testAccPostgreSQLResourceConfig = `
 resource "clickhouse_database" "new_database" {
 	name = "new_database"
 }
@@ -42,3 +43,4 @@ resource "clickhouse_postgresql" "new_table" {
     postgresql_password = "password"
 }
 `
+)
