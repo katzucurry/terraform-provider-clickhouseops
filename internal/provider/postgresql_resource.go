@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}
 "{{.Name.ValueString}}" {{.Type.ValueString}},
 {{end}}
 ) ENGINE = PostgreSQL(
-{{if not .NamedCollectionName.IsNull}}{{.NamedCollection.ValueString}}
+{{if not .NamedCollectionName.IsNull}}{{.NamedCollectionName.ValueString}}
 {{if not .PostgreSQLHost.IsNull}},host={{.PostgreSQLHost.ValueString}}{{end}}
 {{if not .PostgreSQLPort.IsNull}},port={{.PostgreSQLPort.ValueString}}{{end}}
 {{if not .PostgreSQLDatabaseName.IsNull}},database={{.PostgreSQLDatabaseName.ValueString}}{{end}}
