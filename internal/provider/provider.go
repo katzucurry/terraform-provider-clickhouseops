@@ -131,6 +131,8 @@ func (p *ClickhouseProvider) Resources(ctx context.Context) []func() resource.Re
 		NewKafkaEngineResource,
 		NewReplacingMergeTree,
 		NewNamedCollection,
+		NewMaterializedView,
+		NewPostgreSQL,
 	}
 }
 
