@@ -198,9 +198,7 @@ CREATE TABLE [IF NOT EXISTS] [db.]table_name [ON CLUSTER cluster]
 */
 const ddlCreatePostgreSQLTemplate = `
 CREATE TABLE IF NOT EXISTS "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}"{{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} (
-	{{range .Columns}}
-	"{{.Name.ValueString}}" {{.Type.ValueString}},
-	{{end}}
+	{{range .Columns}}"{{.Name.ValueString}}" {{.Type.ValueString}},{{end}}
 ) ENGINE = PostgreSQL(
 {{if not .NamedCollectionName.IsNull}}{{.NamedCollectionName.ValueString}}
 {{if not .PostgreSQLHost.IsNull}},host='{{.PostgreSQLHost.ValueString}}'{{end}}

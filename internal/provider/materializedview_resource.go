@@ -34,8 +34,8 @@ type MaterializedViewModel struct {
 	Name               types.String `tfsdk:"name"`
 	DatabaseName       types.String `tfsdk:"database_name"`
 	ClusterName        types.String `tfsdk:"cluster_name"`
-	TargetDatabaseName types.String `tfsdk:"target_table_name"`
-	TargetTableName    types.String `tfsdk:"target_database_name"`
+	TargetDatabaseName types.String `tfsdk:"target_database_name"`
+	TargetTableName    types.String `tfsdk:"target_table_name"`
 	SQL                types.String `tfsdk:"sql"`
 }
 
