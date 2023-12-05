@@ -203,13 +203,13 @@ CREATE TABLE IF NOT EXISTS "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}
 	{{end}}
 ) ENGINE = PostgreSQL(
 {{if not .NamedCollectionName.IsNull}}{{.NamedCollectionName.ValueString}}
-{{if not .PostgreSQLHost.IsNull}},host={{.PostgreSQLHost.ValueString}}{{end}}
-{{if not .PostgreSQLPort.IsNull}},port={{.PostgreSQLPort.ValueString}}{{end}}
-{{if not .PostgreSQLDatabaseName.IsNull}},database={{.PostgreSQLDatabaseName.ValueString}}{{end}}
-{{if not .PostgreSQLTableName.IsNull}},table={{.PostgreSQLTableName.ValueString}}{{end}}
-{{if not .PostgreSQLUsername.IsNull}},user=.PostgreSQLUsername.ValueString{{end}}
-{{if not .PostgreSQLPassword.IsNull}}password=,{{.PostgreSQLPassword.ValueString}}{{end}}
-{{if not .PostgreSQLSchema.IsNull}},schema={{.PostgreSQLSchema.ValueString}}{{end}})
+{{if not .PostgreSQLHost.IsNull}},host='{{.PostgreSQLHost.ValueString}}'{{end}}
+{{if not .PostgreSQLPort.IsNull}},port='{{.PostgreSQLPort.ValueString}}'{{end}}
+{{if not .PostgreSQLDatabaseName.IsNull}},database='{{.PostgreSQLDatabaseName.ValueString}}'{{end}}
+{{if not .PostgreSQLTableName.IsNull}},table='{{.PostgreSQLTableName.ValueString}}'{{end}}
+{{if not .PostgreSQLUsername.IsNull}},user='{{.PostgreSQLUsername.ValueString}}'{{end}}
+{{if not .PostgreSQLPassword.IsNull}},password='{{.PostgreSQLPassword.ValueString}}'{{end}}
+{{if not .PostgreSQLSchema.IsNull}},schema='{{.PostgreSQLSchema.ValueString}}'{{end}})
 {{else}}
 {{if not .PostgreSQLHost.IsNull}}'{{.PostgreSQLHost.ValueString}}{{end}}{{if not .PostgreSQLPort.IsNull}}:{{.PostgreSQLPort.ValueString}}{{end}}'
 {{if not .PostgreSQLDatabaseName.IsNull}}, '{{.PostgreSQLDatabaseName.ValueString}}'{{end}}
@@ -262,12 +262,12 @@ func (r *PostgreSQL) Create(ctx context.Context, req resource.CreateRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse PostgreSQL",
-			"Could not execute DDL: "+*query+", unexpected error: "+err.Error(),
+			"Could not execute DDL: unexpected error: "+err.Error(),
 		)
 		return
 	}
 
-	data.ID = types.StringValue(data.ClusterName.ValueString() + ":" + data.Name.ValueString())
+	data.ID = types.StringValue(data.ClusterName.ValueString() + ":" + data.DatabaseName.ValueString() + ":" + data.Name.ValueString())
 
 	tflog.Trace(ctx, "Created a PostgreSQL Resource")
 
