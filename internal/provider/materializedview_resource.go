@@ -163,7 +163,7 @@ func (r *MaterializedView) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	data.ID = types.StringValue(data.ClusterName.ValueString() + ":" + data.Name.ValueString())
+	data.ID = types.StringValue(data.ClusterName.ValueString() + ":" + data.DatabaseName.ValueString() + ":" + data.Name.ValueString())
 
 	tflog.Trace(ctx, "Created a MaterializedView Resource")
 
