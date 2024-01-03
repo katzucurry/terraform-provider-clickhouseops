@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"os"
 	"strconv"
@@ -35,6 +36,7 @@ type ClickhouseProviderModel struct {
 	Port     types.Int64  `tfsdk:"port"`
 	Username types.String `tfsdk:"username"`
 	Password types.String `tfsdk:"password"`
+	Secure   types.Bool   `tfsdk:"secure"`
 }
 
 func (p *ClickhouseProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -62,6 +64,10 @@ func (p *ClickhouseProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				Optional:            true,
 				Sensitive:           true,
 			},
+			"secure": schema.BoolAttribute{
+				MarkdownDescription: "Clickhouse secure connection using SSL/TLS",
+				Optional:            true,
+			},
 		},
 	}
 }
@@ -87,6 +93,7 @@ func (p *ClickhouseProvider) Configure(ctx context.Context, req provider.Configu
 	}
 	username := getEnv("TF_CH_USERNMAE", username)
 	password := getEnv("TF_CH_PASSWORD", password)
+	var secureConfig *tls.Config
 
 	if !data.Host.IsNull() {
 		host = data.Host.ValueString()
@@ -103,12 +110,18 @@ func (p *ClickhouseProvider) Configure(ctx context.Context, req provider.Configu
 	if !data.Password.IsNull() {
 		password = data.Password.ValueString()
 	}
+
+	if !data.Secure.IsNull() && data.Secure.ValueBool() {
+		secureConfig = &tls.Config{InsecureSkipVerify: false}
+	}
+
 	db := clickhouse.OpenDB(&clickhouse.Options{
 		Addr: []string{fmt.Sprintf("%s:%d", host, port)},
 		Auth: clickhouse.Auth{
 			Username: username,
 			Password: password,
 		},
+		TLS: secureConfig,
 	})
 
 	if err != nil {

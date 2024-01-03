@@ -29,4 +29,5 @@ provider "clickhouse" {
 - `host` (String) Clickhouse server host
 - `password` (String, Sensitive) Clickhouse server password
 - `port` (Number) Clichhouse server port
+- `secure` (Boolean) Clickhouse secure connection using SSL/TLS
 - `username` (String) Clickhouse server valid username
