@@ -30,16 +30,17 @@ type KafkaEngineResource struct {
 }
 
 type KafkaEngineResourceModel struct {
-	ID                types.String              `tfsdk:"id"`
-	Name              types.String              `tfsdk:"name"`
-	DatabaseName      types.String              `tfsdk:"database_name"`
-	ClusterName       types.String              `tfsdk:"cluster_name"`
-	Columns           []KafkaEngineColumnsModel `tfsdk:"columns"`
-	BrokerList        types.String              `tfsdk:"kafka_broker_list"`
-	TopicList         types.String              `tfsdk:"kafka_topic_list"`
-	GroupName         types.String              `tfsdk:"kafka_group_name"`
-	Format            types.String              `tfsdk:"kafka_format"`
-	SchemaRegistryURL types.String              `tfsdk:"format_avro_schema_registry_url"`
+	ID                  types.String              `tfsdk:"id"`
+	Name                types.String              `tfsdk:"name"`
+	DatabaseName        types.String              `tfsdk:"database_name"`
+	ClusterName         types.String              `tfsdk:"cluster_name"`
+	Columns             []KafkaEngineColumnsModel `tfsdk:"columns"`
+	NamedCollectionName types.String              `tfsdk:"named_collection_name"`
+	BrokerList          types.String              `tfsdk:"kafka_broker_list"`
+	TopicList           types.String              `tfsdk:"kafka_topic_list"`
+	GroupName           types.String              `tfsdk:"kafka_group_name"`
+	Format              types.String              `tfsdk:"kafka_format"`
+	SchemaRegistryURL   types.String              `tfsdk:"format_avro_schema_registry_url"`
 }
 
 type KafkaEngineColumnsModel struct {
@@ -100,30 +101,37 @@ func (r *KafkaEngineResource) Schema(ctx context.Context, req resource.SchemaReq
 					},
 				},
 			},
+			"named_collection_name": schema.StringAttribute{
+				MarkdownDescription: "Clickhouse Named Collection containing kafka config",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"kafka_broker_list": schema.StringAttribute{
 				MarkdownDescription: "Clickhouse Kafka Broker List",
-				Required:            true,
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"kafka_topic_list": schema.StringAttribute{
 				MarkdownDescription: "Clickhouse Kafka Topic List",
-				Required:            true,
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"kafka_group_name": schema.StringAttribute{
 				MarkdownDescription: "Clickhouse Kafka Group Name",
-				Required:            true,
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"kafka_format": schema.StringAttribute{
 				MarkdownDescription: "Clickhouse Kafka Format",
-				Required:            true,
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -158,6 +166,28 @@ func (r *KafkaEngineResource) Configure(ctx context.Context, req resource.Config
 	r.db = db
 }
 
+const ddlCreateKakfaTemplate = `
+CREATE TABLE "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}" {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} 
+(
+	{{range .Columns}}
+	{{.Name.ValueString}} {{.Type.ValueString}},
+	{{end}}
+) ENGINE = Kafka(
+{{if not .NamedCollectionName.IsNull}}{{.NamedCollectionName.ValueString}}
+{{if not .BrokerList.IsNull}},kafka_broker_list='{{.BrokerList.ValueString}}'{{end}}
+{{if not .TopicList.IsNull}},kafka_topic_list='{{.TopicList.ValueString}}'{{end}}
+{{if not .GroupName.IsNull}},kafka_group_name='{{.GroupName.ValueString}}'{{end}}
+{{if not .Format.IsNull}},kafka_format='{{.Format.ValueString}}'{{end}}
+{{if not .SchemaRegistryURL.IsNull}},format_avro_schema_registry_url='{{.SchemaRegistryURL.ValueString}}'{{end}})
+{{else}}
+{{if not .BrokerList.IsNull}}'{{.BrokerList.ValueString}}'{{end}}
+{{if not .TopicList.IsNull}}, '{{.TopicList.ValueString}}'{{end}}
+{{if not .GroupName.IsNull}}, '{{.GroupName.ValueString}}'{{end}}
+{{if not .Format.IsNull}}, '{{.Format.ValueString}}'{{end}})
+{{if not .SchemaRegistryURL.IsNull}}SETTINGS format_avro_schema_registry_url = '{{.SchemaRegistryURL.ValueString}}'{{end}}
+{{end}}
+`
+
 func (r *KafkaEngineResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *KafkaEngineResourceModel
 
@@ -166,21 +196,7 @@ func (r *KafkaEngineResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	queryTemplate := `
-	CREATE TABLE "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}" {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} 
-	(
-		{{range .Columns}}
-		{{.Name.ValueString}} {{.Type.ValueString}},
-		{{end}}
-	) ENGINE = Kafka()
-	SETTINGS
-	    kafka_broker_list = '{{.BrokerList.ValueString}}',
-	    kafka_topic_list = '{{.TopicList.ValueString}}',
-	    kafka_group_name = '{{.GroupName.ValueString}}',
-	    kafka_format = '{{.Format.ValueString}}'{{if not .SchemaRegistryURL.IsNull}},{{end}} 
-		{{if not .SchemaRegistryURL.IsNull}} format_avro_schema_registry_url = '{{.SchemaRegistryURL.ValueString}}'{{end}}
-	`
-	query, err := common.RenderTemplate(queryTemplate, data)
+	query, err := common.RenderTemplate(ddlCreateKakfaTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse KafkaEngine Table",

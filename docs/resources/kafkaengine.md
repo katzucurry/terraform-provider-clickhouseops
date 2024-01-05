@@ -45,16 +45,17 @@ resource "clickhouse_kafkaengine" "new_table2" {
 
 - `columns` (Attributes List) Clickhouse Table Column List (see [below for nested schema](#nestedatt--columns))
 - `database_name` (String) Clickhouse Database Name
-- `kafka_broker_list` (String) Clickhouse Kafka Broker List
-- `kafka_format` (String) Clickhouse Kafka Format
-- `kafka_group_name` (String) Clickhouse Kafka Group Name
-- `kafka_topic_list` (String) Clickhouse Kafka Topic List
 - `name` (String) Clickhouse Table Name
 
 ### Optional
 
 - `cluster_name` (String) Clickhouse Cluster Name
 - `format_avro_schema_registry_url` (String) Clickhouse Format Avro Schema Registry URL
+- `kafka_broker_list` (String) Clickhouse Kafka Broker List
+- `kafka_format` (String) Clickhouse Kafka Format
+- `kafka_group_name` (String) Clickhouse Kafka Group Name
+- `kafka_topic_list` (String) Clickhouse Kafka Topic List
+- `named_collection_name` (String) Clickhouse Named Collection containing kafka config
 
 ### Read-Only
 
