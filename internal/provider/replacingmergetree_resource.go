@@ -224,10 +224,11 @@ CREATE TABLE "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}" {{if not .C
 {{if not .OrderBy.IsNull}} ORDER BY "{{.OrderBy.ValueString}}"{{end}}
 {{if not .PrimaryKey.IsNull}} PRIMARY KEY "{{.PrimaryKey.ValueString}}"{{end}}
 {{if not .SampleBy.IsNull}} SAMPLE BY "{{.SampleBy.ValueString}}"{{end}}
+{{$size := size .Settings}}
 {{with .Settings}}
 SETTINGS
-{{range .}}
-{{.Name.ValueString}}={{.Value.ValueString}},
+{{range $i, $e := .}}
+{{.Name.ValueString}}='{{.Value.ValueString}}'{{if lt $i $size}},{{end}}
 {{end}}
 {{end}}
 `

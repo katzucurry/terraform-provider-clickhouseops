@@ -38,5 +38,9 @@ resource "clickhouse_replacingmergetree" "test" {
 	type = "String"
   }]
   order_by = "a"
+  settings = [ {
+    name = "storage_policy"
+    value = "default"
+  } ]
 }
 `
