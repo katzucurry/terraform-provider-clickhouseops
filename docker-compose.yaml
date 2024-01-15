@@ -2,7 +2,7 @@ version: '3'
 
 services:
   clickhouse:
-    image: clickhouse/clickhouse-server:23.9
+    image: clickhouse/clickhouse-server:23.12
     ulimits:
       nofile:
         soft: 262144
@@ -11,4 +11,12 @@ services:
       - 8123:8123
       - 9000:9000
     volumes:
-      - ./docker-compose-config.xml:/etc/clickhouse-server/users.d/users.xml
+      - ./docker-compose-config.xml:/etc/clickhouse-server/conf.d/config.xml
+      - ./docker-compose-user-config.xml:/etc/clickhouse-server/users.d/users.xml
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.0
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000

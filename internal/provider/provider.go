@@ -146,6 +146,8 @@ func (p *ClickhouseProvider) Resources(ctx context.Context) []func() resource.Re
 		NewNamedCollection,
 		NewMaterializedView,
 		NewPostgreSQL,
+		NewS3Queue,
+		NewSimpleUser,
 	}
 }
 
