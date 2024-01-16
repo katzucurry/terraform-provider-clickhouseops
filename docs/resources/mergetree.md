@@ -20,7 +20,7 @@ Clickhouse MergeTree Table
 - `columns` (Attributes List) Clickhouse Table Column List (see [below for nested schema](#nestedatt--columns))
 - `database_name` (String) Clickhouse Database Name
 - `name` (String) Clickhouse Table Name
-- `order_by` (String) Clickhouse Cluster Name
+- `order_by` (List of String) Clickhous columns list for order by
 
 ### Optional
 

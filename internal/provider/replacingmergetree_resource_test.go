@@ -16,6 +16,7 @@ func TestAccReplacingMergeTreeResource(t *testing.T) {
 				Config: testAccReplacingMergeTreeResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("clickhouse_replacingmergetree.test", "name", "test"),
+					resource.TestCheckResourceAttr("clickhouse_replacingmergetree.test", "order_by.0", "a"),
 				),
 			},
 		},
@@ -37,7 +38,7 @@ resource "clickhouse_replacingmergetree" "test" {
 	name = "b"
 	type = "String"
   }]
-  order_by = "a"
+  order_by = ["a"]
   settings = [ {
     name = "storage_policy"
     value = "default"

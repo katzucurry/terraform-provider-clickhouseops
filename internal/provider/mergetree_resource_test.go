@@ -28,11 +28,12 @@ resource "clickhouse_mergetree" "new_table1" {
 		name = "b"
 		type = "String"
 	}]
-	order_by = "a"
+	order_by = ["a"]
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("clickhouse_mergetree.new_table1", "name", "test_merge_tree"),
+					resource.TestCheckResourceAttr("clickhouse_mergetree.new_table1", "order_by.0", "a"),
 				),
 			},
 		},

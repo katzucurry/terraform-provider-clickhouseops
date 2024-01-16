@@ -42,7 +42,7 @@ resource "clickhouse_replacingmergetree" "new_table" {
 - `columns` (Attributes List) Clickhouse Table Column List (see [below for nested schema](#nestedatt--columns))
 - `database_name` (String) Clickhouse Database Name
 - `name` (String) Clickhouse Table Name
-- `order_by` (String) ReplacingMergeTree column or expression for order
+- `order_by` (List of String) ReplacingMergeTree column or expression for order
 
 ### Optional
 

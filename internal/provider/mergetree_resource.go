@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,7 +36,7 @@ type MergeTreeResourceModel struct {
 	DatabaseName types.String            `tfsdk:"database_name"`
 	ClusterName  types.String            `tfsdk:"cluster_name"`
 	Columns      []MergeTreeColumnsModel `tfsdk:"columns"`
-	OrderBy      types.String            `tfsdk:"order_by"`
+	OrderBy      []types.String          `tfsdk:"order_by"`
 	PartitionBy  types.String            `tfsdk:"partition_by"`
 	PrimaryKey   types.String            `tfsdk:"primary_key"`
 }
@@ -98,11 +99,12 @@ func (r *MergeTreeResource) Schema(ctx context.Context, req resource.SchemaReque
 					},
 				},
 			},
-			"order_by": schema.StringAttribute{
-				MarkdownDescription: "Clickhouse Cluster Name",
+			"order_by": schema.ListAttribute{
+				MarkdownDescription: "Clickhous columns list for order by",
+				ElementType:         types.StringType,
 				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
 				},
 			},
 			"partition_by": schema.StringAttribute{
@@ -157,9 +159,9 @@ func (r *MergeTreeResource) Create(ctx context.Context, req resource.CreateReque
 		{{.Name.ValueString}} {{.Type.ValueString}},
 		{{end}}
 	) ENGINE = MergeTree()
-	ORDER BY {{.OrderBy.ValueString}}
-	{{if not .PartitionBy.IsNull}} PARTITION BY {{.PartitionBy.ValueString}}{{end}}
-	{{if not .PrimaryKey.IsNull}} PRIMARY KEY {{.PrimaryKey.ValueString}}{{end}}
+	{{$size := size .OrderBy}}ORDER BY ({{range $i, $e := .OrderBy}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}})
+	{{if not .PartitionBy.IsNull}}PARTITION BY {{.PartitionBy.ValueString}}{{end}}	
+	{{if not .PrimaryKey.IsNull}}PRIMARY KEY {{.PrimaryKey.ValueString}}{{end}}
 	`
 	query, err := common.RenderTemplate(queryTemplate, data)
 	if err != nil {

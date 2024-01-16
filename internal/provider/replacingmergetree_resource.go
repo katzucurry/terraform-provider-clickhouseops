@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,7 +41,7 @@ type ReplacingMergeTreeModel struct {
 	Version      types.String                      `tfsdk:"version"`
 	IsDeleted    types.String                      `tfsdk:"is_deleted"`
 	PartitionBy  types.String                      `tfsdk:"partition_by"`
-	OrderBy      types.String                      `tfsdk:"order_by"`
+	OrderBy      []types.String                    `tfsdk:"order_by"`
 	PrimaryKey   types.String                      `tfsdk:"primary_key"`
 	SampleBy     types.String                      `tfsdk:"sample_by"`
 	Settings     []ReplacingMergeTreeSettingsModel `tfsdk:"settings"`
@@ -138,11 +139,12 @@ func (r *ReplacingMergeTree) Schema(ctx context.Context, req resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"order_by": schema.StringAttribute{
+			"order_by": schema.ListAttribute{
 				MarkdownDescription: "ReplacingMergeTree column or expression for order",
+				ElementType:         types.StringType,
 				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
 				},
 			},
 			"primary_key": schema.StringAttribute{
@@ -221,7 +223,7 @@ CREATE TABLE "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}" {{if not .C
   {{end}}
 ) ENGINE = {{if .IsReplicated.ValueBool}}ReplicatedReplacingMergeTree{{else}}ReplacingMergeTree{{end}}({{if not .Version.IsNull}}{{.Version.ValueString}}{{end}}{{if not .IsDeleted.IsNull}},{{.IsDeleted.ValueString}}{{end}})
 {{if not .PartitionBy.IsNull}} PARTITION BY "{{.PartitionBy.ValueString}}"{{end}}
-{{if not .OrderBy.IsNull}} ORDER BY "{{.OrderBy.ValueString}}"{{end}}
+{{$size := size .OrderBy}}ORDER BY ({{range $i, $e := .OrderBy}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}})
 {{if not .PrimaryKey.IsNull}} PRIMARY KEY "{{.PrimaryKey.ValueString}}"{{end}}
 {{if not .SampleBy.IsNull}} SAMPLE BY "{{.SampleBy.ValueString}}"{{end}}
 {{$size := size .Settings}}
