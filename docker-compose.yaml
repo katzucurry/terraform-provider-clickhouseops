@@ -20,3 +20,23 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+  minio:
+    image: docker.io/bitnami/minio:2024
+    ports:
+      - '8900:9000'
+      - '8901:9001'
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_DEFAULT_BUCKETS=test
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc cp /data/addresses.csv myminio/test/addresses.csv;
+      exit 0;"
+    volumes:
+      - ./addresses.csv:/data/addresses.csv

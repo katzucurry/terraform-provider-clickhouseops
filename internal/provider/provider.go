@@ -148,11 +148,14 @@ func (p *ClickhouseProvider) Resources(ctx context.Context) []func() resource.Re
 		NewPostgreSQL,
 		NewS3Queue,
 		NewSimpleUser,
+		NewSimpleRole,
 	}
 }
 
 func (p *ClickhouseProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		NewS3DescribeDataSource,
+	}
 }
 
 func New(version string) func() provider.Provider {
