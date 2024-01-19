@@ -167,7 +167,7 @@ func (r *GrantRole) Update(ctx context.Context, req resource.UpdateRequest, resp
 }
 
 const ddlRevokeRoleTemplate = `
-REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' FROM '{{.UserName.ValueString}}'.
+REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' FROM '{{.UserName.ValueString}}'
 `
 
 func (r *GrantRole) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
