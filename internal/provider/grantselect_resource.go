@@ -113,7 +113,7 @@ func (r *GrantSelect) Configure(ctx context.Context, req resource.ConfigureReque
 /*
 	Clickhouse Grant Syntax for reference
 
-GRANT [ON CLUSTER cluster_name] privilege[(column_name [,...])] [,...] ON {db.table|db.*|*.*|table|*} TO {user | role | CURRENT_USER} [,...] [WITH GRANT OPTION] [WITH REPLACE OPTION]
+GRANT [ON CLUSTER cluster_name] privilege[(column_name [,...])] [,...] ON {db.table|db.*|*.*|table|*} TO {user | role | CURRENT_USER} [,...] [WITH GRANT OPTION] [WITH REPLACE OPTION].
 */
 const ddlGrantSelectTemplate = `
 GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}"."{{.TableName.ValueString}}" TO '{{.Assignee.ValueString}}'

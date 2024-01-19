@@ -98,10 +98,10 @@ func (r *GrantRole) Configure(ctx context.Context, req resource.ConfigureRequest
 /*
 	Clickhouse Grant Syntax for reference
 
-GRANT [ON CLUSTER cluster_name] role [,...] TO {user | another_role | CURRENT_USER} [,...] [WITH ADMIN OPTION] [WITH REPLACE OPTION]
+GRANT [ON CLUSTER cluster_name] role [,...] TO {user | another_role | CURRENT_USER} [,...] [WITH ADMIN OPTION] [WITH REPLACE OPTION].
 */
 const ddlGrantRoleTemplate = `
-GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.UserName.ValueString}}' TO '{{.Assignee.ValueString}}'
+GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' TO '{{.UserName.ValueString}}'
 `
 
 func (r *GrantRole) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -167,7 +167,7 @@ func (r *GrantRole) Update(ctx context.Context, req resource.UpdateRequest, resp
 }
 
 const ddlRevokeRoleTemplate = `
-REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.UserName.ValueString}}' FROM '{{.Assignee.ValueString}}'
+REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' FROM '{{.UserName.ValueString}}'.
 `
 
 func (r *GrantRole) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
