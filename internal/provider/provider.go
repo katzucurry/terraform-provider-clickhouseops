@@ -149,6 +149,7 @@ func (p *ClickhouseProvider) Resources(ctx context.Context) []func() resource.Re
 		NewS3Queue,
 		NewSimpleUser,
 		NewSimpleRole,
+		NewGrantSelect,
 	}
 }
 
