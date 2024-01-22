@@ -100,9 +100,7 @@ func (r *GrantRole) Configure(ctx context.Context, req resource.ConfigureRequest
 
 GRANT [ON CLUSTER cluster_name] role [,...] TO {user | another_role | CURRENT_USER} [,...] [WITH ADMIN OPTION] [WITH REPLACE OPTION].
 */
-const ddlCreateGrantRoleTemplate = `
-GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' TO '{{.UserName.ValueString}}'
-`
+const ddlCreateGrantRoleTemplate = `GRANT {{if not .ClusterName.IsNull}}ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' TO '{{.UserName.ValueString}}'`
 
 func (r *GrantRole) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *GrantRoleModel
@@ -166,9 +164,7 @@ func (r *GrantRole) Update(ctx context.Context, req resource.UpdateRequest, resp
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-const ddlDestroyGrantRoleTemplate = `
-REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' FROM '{{.UserName.ValueString}}'
-`
+const ddlDestroyGrantRoleTemplate = `REVOKE {{if not .ClusterName.IsNull}}ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' FROM '{{.UserName.ValueString}}'`
 
 func (r *GrantRole) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *GrantRoleModel
