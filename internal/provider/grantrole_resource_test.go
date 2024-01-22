@@ -25,7 +25,7 @@ func TestAccGrantRoleResource(t *testing.T) {
 const testAccGrantRoleConfig = `
 resource "clickhouse_simpleuser" "user1" {
 	name = "user1"
-	sha256_password = "password1"
+	sha256_password = sha256("password1")
 }
 
 resource "clickhouse_simplerole" "role1" {

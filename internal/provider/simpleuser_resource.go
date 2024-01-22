@@ -136,7 +136,7 @@ CREATE USER [IF NOT EXISTS | OR REPLACE] name1 [ON CLUSTER cluster_name1]
 	[SETTINGS variable [= value] [MIN [=] min_value] [MAX [=] max_value] [READONLY | WRITABLE] | PROFILE 'profile_name'] [,...]
 */
 const ddlSimpleUserTemplate = `
-CREATE USER '{{.Name.ValueString}}'{{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} 
+CREATE USER "{{.Name.ValueString}}"{{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} 
 IDENTIFIED WITH sha256_hash BY '{{.SHA256Password.ValueString}}'
 {{if not .ValidDatetime.IsNull}}VALID UNTIL '{{.ValidDatetime.ValueInt64}}'{{end}}
 {{if not .DefaultRoleName.IsNull}}DEFAULT ROLE '{{.DefaultRoleName.ValueString}}'{{end}}
@@ -154,7 +154,7 @@ func (r *SimpleUser) Create(ctx context.Context, req resource.CreateRequest, res
 	query, err := common.RenderTemplate(ddlSimpleUserTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Clickhouse SimpleUser",
+			"Error Creating Clickhouse Simple User",
 			"Could not render DDL, unexpected error: "+err.Error(),
 		)
 		return
@@ -163,8 +163,8 @@ func (r *SimpleUser) Create(ctx context.Context, req resource.CreateRequest, res
 	_, err = r.db.Exec(*query)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Clickhouse SimpleUser",
-			"Could not execute DDL, unexpected error: "+err.Error(),
+			"Error Creating Clickhouse Simple User",
+			"Could not execute DDL, unexpected error: "+*query+err.Error(),
 		)
 		return
 	}

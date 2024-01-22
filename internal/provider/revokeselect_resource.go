@@ -63,7 +63,7 @@ func (r *RevokeSelect) Schema(ctx context.Context, req resource.SchemaRequest, r
 			},
 			"table_name": schema.StringAttribute{
 				MarkdownDescription: "Name of the table you want to grant select permissions",
-				Required:            true,
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -116,7 +116,7 @@ func (r *RevokeSelect) Configure(ctx context.Context, req resource.ConfigureRequ
 GRANT [ON CLUSTER cluster_name] privilege[(column_name [,...])] [,...] ON {db.table|db.*|*.*|table|*} TO {user | role | CURRENT_USER} [,...] [WITH GRANT OPTION] [WITH REPLACE OPTION].
 */
 const ddlCreateRevokeSelectTemplate = `
-REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}"."{{.TableName.ValueString}}" FROM '{{.Assignee.ValueString}}'
+REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}".{{if not .TableName.IsNull}}"{{.TableName.ValueString}}"{{else}}*{{end}} FROM '{{.Assignee.ValueString}}'
 `
 
 func (r *RevokeSelect) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -186,7 +186,7 @@ func (r *RevokeSelect) Update(ctx context.Context, req resource.UpdateRequest, r
 }
 
 const ddlDestroyRevokeSelectTemplate = `
-GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}"."{{.TableName.ValueString}}" TO '{{.Assignee.ValueString}}'
+GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}".{{if not .TableName.IsNull}}"{{.TableName.ValueString}}"{{else}}*{{end}} TO '{{.Assignee.ValueString}}'
 `
 
 func (r *RevokeSelect) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

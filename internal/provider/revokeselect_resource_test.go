@@ -24,7 +24,7 @@ func TestAccRevokeSelectResource(t *testing.T) {
 const testAccRevokeSelectConfig = `
 resource "clickhouse_simpleuser" "user2" {
 	name = "user2"
-	sha256_password = "password2"
+	sha256_password = sha256("password2")
 }
 
 resource "clickhouse_revokeselect" "new_revoke" {

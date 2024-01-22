@@ -19,12 +19,12 @@ Clickhouse grant select privilige to a user or a role (Assignee)
 
 - `assignee` (String) User or Role you want grant permissions
 - `database_name` (String) Name of the database where table you want to grant select permissions is located
-- `table_name` (String) Name of the table you want to grant select permissions
 
 ### Optional
 
 - `cluster_name` (String) Clickhouse cluster name
 - `columns_name` (List of String) List of columns is the user or role restricted on the target table
+- `table_name` (String) Name of the table you want to grant select permissions
 
 ### Read-Only
 

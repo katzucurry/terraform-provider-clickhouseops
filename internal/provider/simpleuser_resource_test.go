@@ -25,6 +25,6 @@ func TestAccSimpleUserResource(t *testing.T) {
 const testAccSimpleUserConfig = `
 resource "clickhouse_simpleuser" "new_user" {
   name = "new_user"
-  sha256_password = "dummy_password"
+  sha256_password = sha256("dummy_password")
 }
 `
