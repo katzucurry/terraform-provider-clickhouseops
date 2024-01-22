@@ -17,20 +17,20 @@ import (
 )
 
 var (
-	_ resource.Resource                = &GrantSelect{}
-	_ resource.ResourceWithConfigure   = &GrantSelect{}
-	_ resource.ResourceWithImportState = &GrantSelect{}
+	_ resource.Resource                = &RevokeSelect{}
+	_ resource.ResourceWithConfigure   = &RevokeSelect{}
+	_ resource.ResourceWithImportState = &RevokeSelect{}
 )
 
-func NewGrantSelect() resource.Resource {
-	return &GrantSelect{}
+func NewRevokeSelect() resource.Resource {
+	return &RevokeSelect{}
 }
 
-type GrantSelect struct {
+type RevokeSelect struct {
 	db *sql.DB
 }
 
-type GrantSelectModel struct {
+type RevokeSelectModel struct {
 	ID           types.String   `tfsdk:"id"`
 	DatabaseName types.String   `tfsdk:"database_name"`
 	TableName    types.String   `tfsdk:"table_name"`
@@ -39,11 +39,11 @@ type GrantSelectModel struct {
 	Assignee     types.String   `tfsdk:"assignee"`
 }
 
-func (r *GrantSelect) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_grantselect"
+func (r *RevokeSelect) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_revokeselect"
 }
 
-func (r *GrantSelect) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *RevokeSelect) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Clickhouse grant select privilige to a user or a role (Assignee)",
 
@@ -91,7 +91,7 @@ func (r *GrantSelect) Schema(ctx context.Context, req resource.SchemaRequest, re
 	}
 }
 
-func (r *GrantSelect) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *RevokeSelect) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -115,19 +115,19 @@ func (r *GrantSelect) Configure(ctx context.Context, req resource.ConfigureReque
 
 GRANT [ON CLUSTER cluster_name] privilege[(column_name [,...])] [,...] ON {db.table|db.*|*.*|table|*} TO {user | role | CURRENT_USER} [,...] [WITH GRANT OPTION] [WITH REPLACE OPTION].
 */
-const ddlCreateGrantSelectTemplate = `
-GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}"."{{.TableName.ValueString}}" TO '{{.Assignee.ValueString}}'
+const ddlCreateRevokeSelectTemplate = `
+REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}"."{{.TableName.ValueString}}" FROM '{{.Assignee.ValueString}}'
 `
 
-func (r *GrantSelect) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *GrantSelectModel
+func (r *RevokeSelect) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *RevokeSelectModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	query, err := common.RenderTemplate(ddlCreateGrantSelectTemplate, data)
+	query, err := common.RenderTemplate(ddlCreateRevokeSelectTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Granting Permissions",
@@ -150,7 +150,7 @@ func (r *GrantSelect) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 	data.ID = types.StringValue(data.ClusterName.ValueString() + ":" + strings.Join(columns, ":") + ":" + data.Assignee.ValueString())
 
-	tflog.Trace(ctx, "Created a GrantSelect Resource")
+	tflog.Trace(ctx, "Created a RevokeSelect Resource")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -158,8 +158,8 @@ func (r *GrantSelect) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 }
 
-func (r *GrantSelect) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *GrantSelectModel
+func (r *RevokeSelect) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *RevokeSelectModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -172,8 +172,8 @@ func (r *GrantSelect) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 }
 
-func (r *GrantSelect) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *GrantSelectModel
+func (r *RevokeSelect) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *RevokeSelectModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -185,12 +185,12 @@ func (r *GrantSelect) Update(ctx context.Context, req resource.UpdateRequest, re
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-const ddlDestroyGrantSelectTemplate = `
-REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}"."{{.TableName.ValueString}}" FROM '{{.Assignee.ValueString}}'
+const ddlDestroyRevokeSelectTemplate = `
+GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}SELECT{{$size := size .ColumnsName}}{{with .ColumnsName}}({{range $i, $e := .}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}}){{end}} ON "{{.DatabaseName.ValueString}}"."{{.TableName.ValueString}}" TO '{{.Assignee.ValueString}}'
 `
 
-func (r *GrantSelect) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *GrantSelectModel
+func (r *RevokeSelect) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *RevokeSelectModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -199,7 +199,7 @@ func (r *GrantSelect) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	query, err := common.RenderTemplate(ddlDestroyGrantSelectTemplate, data)
+	query, err := common.RenderTemplate(ddlDestroyRevokeSelectTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return
@@ -212,6 +212,6 @@ func (r *GrantSelect) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 }
 
-func (r *GrantSelect) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *RevokeSelect) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

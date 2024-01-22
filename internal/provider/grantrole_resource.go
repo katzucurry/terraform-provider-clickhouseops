@@ -100,7 +100,7 @@ func (r *GrantRole) Configure(ctx context.Context, req resource.ConfigureRequest
 
 GRANT [ON CLUSTER cluster_name] role [,...] TO {user | another_role | CURRENT_USER} [,...] [WITH ADMIN OPTION] [WITH REPLACE OPTION].
 */
-const ddlGrantRoleTemplate = `
+const ddlCreateGrantRoleTemplate = `
 GRANT {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' TO '{{.UserName.ValueString}}'
 `
 
@@ -112,7 +112,7 @@ func (r *GrantRole) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	query, err := common.RenderTemplate(ddlGrantRoleTemplate, data)
+	query, err := common.RenderTemplate(ddlCreateGrantRoleTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Granting Permissions",
@@ -166,7 +166,7 @@ func (r *GrantRole) Update(ctx context.Context, req resource.UpdateRequest, resp
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-const ddlRevokeRoleTemplate = `
+const ddlDestroyGrantRoleTemplate = `
 REVOKE {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}' {{end}}'{{.RoleName.ValueString}}' FROM '{{.UserName.ValueString}}'
 `
 
@@ -180,7 +180,7 @@ func (r *GrantRole) Delete(ctx context.Context, req resource.DeleteRequest, resp
 		return
 	}
 
-	query, err := common.RenderTemplate(ddlRevokeRoleTemplate, data)
+	query, err := common.RenderTemplate(ddlDestroyGrantRoleTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return

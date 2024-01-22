@@ -151,6 +151,7 @@ func (p *ClickhouseProvider) Resources(ctx context.Context) []func() resource.Re
 		NewSimpleRole,
 		NewGrantSelect,
 		NewGrantRole,
+		NewRevokeSelect,
 	}
 }
 
