@@ -137,7 +137,7 @@ CREATE USER [IF NOT EXISTS | OR REPLACE] name1 [ON CLUSTER cluster_name1]
 */
 const ddlSimpleUserTemplate = `
 CREATE USER '{{.Name.ValueString}}'{{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} 
-IDENTIFIED WITH sha256_password BY '{{.SHA256Password.ValueString}}'
+IDENTIFIED WITH sha256_hash BY '{{.SHA256Password.ValueString}}'
 {{if not .ValidDatetime.IsNull}}VALID UNTIL '{{.ValidDatetime.ValueInt64}}'{{end}}
 {{if not .DefaultRoleName.IsNull}}DEFAULT ROLE '{{.DefaultRoleName.ValueString}}'{{end}}
 {{if not .DefaultDatabaseName.IsNull}}DEFAULT DATABASE '{{.DefaultDatabaseName.ValueString}}'{{end}}
