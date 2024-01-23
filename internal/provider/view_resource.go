@@ -109,25 +109,6 @@ func (r *ViewResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	originalQuery := data.SQL.ValueString()
-	expectedQuery, err := r.validateQuery(originalQuery)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Creating Clickhouse View",
-			"Could Validate SQL query, unexpected error: "+err.Error(),
-		)
-		return
-	}
-
-	if originalQuery != *expectedQuery {
-		resp.Diagnostics.AddError(
-			"Error Creating Clickhouse View",
-			"View SQL query, not valid. "+
-				"In order to work you should format the query using EXPLAIN SYNTAX clause in Clickhouse, the output should be like this, using heredoc string format:\n"+*expectedQuery,
-		)
-		return
-	}
-
 	queryTemplate := `CREATE OR REPLACE VIEW "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}" {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}} AS {{.SQL.ValueString}}`
 	query, err := common.RenderTemplate(queryTemplate, data)
 	if err != nil {
@@ -179,7 +160,19 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		)
 		return
 	}
-	data.SQL = types.StringValue(*formatedAsSelect)
+
+	validateQuery, err := r.validateQuery(data.SQL.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Clickhouse View",
+			"Could Validate SQL query, unexpected error: "+err.Error(),
+		)
+		return
+	}
+
+	if *formatedAsSelect != *validateQuery {
+		data.SQL = types.StringValue(*formatedAsSelect)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
