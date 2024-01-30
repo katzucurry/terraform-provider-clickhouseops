@@ -145,7 +145,11 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	if !data.ClusterName.IsNull() && !r.existViewInCluster(data.DatabaseName.ValueString(), data.Name.ValueString(), data.ClusterName.ValueString()) {
+		tflog.Trace(ctx, "View doesn't exists in one or more Clickhouse nodes")
+		resp.State.RemoveResource(ctx)
+		return
+	}
 	as_select, err := r.readView(data.DatabaseName.ValueString(), data.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
@@ -156,7 +160,7 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Clickhouse View",
-			"Could Validate SQL query, unexpected error: "+err.Error(),
+			"Could not validate SQL query stored in clickhouse, unexpected error: "+err.Error(),
 		)
 		return
 	}
@@ -165,7 +169,7 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Clickhouse View",
-			"Could Validate SQL query, unexpected error: "+err.Error(),
+			"Could not validate SQL query stored in terraform state, unexpected error: "+err.Error(),
 		)
 		return
 	}
@@ -235,6 +239,32 @@ func (r *ViewResource) readView(databaseName string, viewName string) (*string, 
 		return nil, err
 	}
 	return &as_select, nil
+}
+
+func (r *ViewResource) existViewInCluster(databaseName string, viewName string, clusterName string) bool {
+	var hosts string
+	var cnt_hosts int
+	clusterQuery := `
+	SELECT arrayStringConcat(groupArray(host_name), ',') as hosts, count(1) as cnt_hosts
+	FROM system.clusters
+	WHERE "cluster" = ?
+	GROUP BY "cluster"`
+	err := r.db.QueryRow(clusterQuery, clusterName).Scan(&hosts, &cnt_hosts)
+	if err != nil {
+		return false
+	}
+	var cnt int
+	query := `SELECT count(1)
+	FROM remote(?, system, "tables")
+	WHERE "engine" = 'View' AND  "database" = ? AND "name" = ?`
+	err = r.db.QueryRow(query, hosts, databaseName, viewName).Scan(&cnt)
+	if err != nil {
+		return false
+	}
+	if cnt != cnt_hosts {
+		return false
+	}
+	return true
 }
 
 func (r *ViewResource) validateQuery(sql string) (*string, error) {
