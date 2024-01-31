@@ -158,19 +158,15 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	formatedAsSelect, err := r.validateQuery(*as_select)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Clickhouse View",
-			"Could not validate SQL query stored in clickhouse, unexpected error: "+err.Error(),
-		)
+		tflog.Trace(ctx, "Could not validate SQL query stored in clickhouse, recreating")
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
 	validateQuery, err := r.validateQuery(data.SQL.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Clickhouse View",
-			"Could not validate SQL query stored in terraform state, unexpected error: "+err.Error(),
-		)
+		tflog.Trace(ctx, "Could not validate SQL query stored in terraform state")
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
