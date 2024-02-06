@@ -3,8 +3,8 @@ package common
 import (
 	"bytes"
 	"database/sql"
-	"html/template"
 	"reflect"
+	"text/template"
 )
 
 var functions = template.FuncMap{
