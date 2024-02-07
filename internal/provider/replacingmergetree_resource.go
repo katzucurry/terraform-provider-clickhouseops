@@ -113,7 +113,6 @@ func (r *ReplacingMergeTree) Schema(ctx context.Context, req resource.SchemaRequ
 			"is_replicated": schema.BoolAttribute{
 				MarkdownDescription: "Clickhouse replicated ReplacingMergeTree",
 				Optional:            true,
-				// Default:             booldefault.StaticBool(false),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},

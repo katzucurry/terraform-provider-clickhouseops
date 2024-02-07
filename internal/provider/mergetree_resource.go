@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -36,6 +37,7 @@ type MergeTreeResourceModel struct {
 	DatabaseName types.String            `tfsdk:"database_name"`
 	ClusterName  types.String            `tfsdk:"cluster_name"`
 	Columns      []MergeTreeColumnsModel `tfsdk:"columns"`
+	IsReplicated types.Bool              `tfsdk:"is_replicated"`
 	OrderBy      []types.String          `tfsdk:"order_by"`
 	PartitionBy  types.String            `tfsdk:"partition_by"`
 	PrimaryKey   types.String            `tfsdk:"primary_key"`
@@ -99,6 +101,13 @@ func (r *MergeTreeResource) Schema(ctx context.Context, req resource.SchemaReque
 					},
 				},
 			},
+			"is_replicated": schema.BoolAttribute{
+				MarkdownDescription: "Clickhouse replicated ReplacingMergeTree",
+				Optional:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+			},
 			"order_by": schema.ListAttribute{
 				MarkdownDescription: "Clickhous columns list for order by",
 				ElementType:         types.StringType,
@@ -158,7 +167,7 @@ func (r *MergeTreeResource) Create(ctx context.Context, req resource.CreateReque
 		{{range .Columns}}
 		{{.Name.ValueString}} {{.Type.ValueString}},
 		{{end}}
-	) ENGINE = MergeTree()
+	) ENGINE = {{if .IsReplicated.ValueBool}}ReplicatedMergeTree(){{else}}MergeTree(){{end}}
 	{{$size := size .OrderBy}}ORDER BY ({{range $i, $e := .OrderBy}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}})
 	{{if not .PartitionBy.IsNull}}PARTITION BY {{.PartitionBy.ValueString}}{{end}}	
 	{{if not .PrimaryKey.IsNull}}PRIMARY KEY {{.PrimaryKey.ValueString}}{{end}}

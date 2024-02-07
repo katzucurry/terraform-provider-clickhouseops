@@ -25,6 +25,7 @@ Clickhouse MergeTree Table
 ### Optional
 
 - `cluster_name` (String) Clickhouse Cluster Name
+- `is_replicated` (Boolean) Clickhouse replicated ReplacingMergeTree
 - `partition_by` (String) Clickhouse Cluster Name
 - `primary_key` (String) Clickhouse Cluster Name
 
