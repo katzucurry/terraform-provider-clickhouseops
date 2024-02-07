@@ -260,9 +260,7 @@ func (r *S3Queue) Create(ctx context.Context, req resource.CreateRequest, resp *
 		return
 	}
 
-	if data.NamedCollectionName.IsNull() &&
-		(data.Path.IsNull() || data.Format.IsNull()) ||
-		(data.NoSign.IsNull() && (data.AwsAccessKeyId.IsNull() || data.AwsSecretAccessKey.IsNull())) {
+	if data.NamedCollectionName.IsNull() && data.Path.IsNull() {
 		resp.Diagnostics.AddError(
 			"Missing Attribute Configuration",
 			"Expect a Clickhouse named collection or the complete set of S3Queue parameters configuration",
