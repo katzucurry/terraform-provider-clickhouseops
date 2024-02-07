@@ -28,6 +28,7 @@ Clickhouse MergeTree Table
 - `is_replicated` (Boolean) Clickhouse replicated ReplacingMergeTree
 - `partition_by` (String) Clickhouse Cluster Name
 - `primary_key` (String) Clickhouse Cluster Name
+- `settings` (Attributes List) MergeTree optional settings (see [below for nested schema](#nestedatt--settings))
 
 ### Read-Only
 
@@ -40,3 +41,12 @@ Required:
 
 - `name` (String) Clickhouse Table Column name
 - `type` (String) Clickhouse Table Column type
+
+
+<a id="nestedatt--settings"></a>
+### Nested Schema for `settings`
+
+Required:
+
+- `name` (String) Clickhouse table setting name
+- `value` (String) Clickhouse table setting value

@@ -32,20 +32,26 @@ type MergeTreeResource struct {
 }
 
 type MergeTreeResourceModel struct {
-	ID           types.String            `tfsdk:"id"`
-	Name         types.String            `tfsdk:"name"`
-	DatabaseName types.String            `tfsdk:"database_name"`
-	ClusterName  types.String            `tfsdk:"cluster_name"`
-	Columns      []MergeTreeColumnsModel `tfsdk:"columns"`
-	IsReplicated types.Bool              `tfsdk:"is_replicated"`
-	OrderBy      []types.String          `tfsdk:"order_by"`
-	PartitionBy  types.String            `tfsdk:"partition_by"`
-	PrimaryKey   types.String            `tfsdk:"primary_key"`
+	ID           types.String             `tfsdk:"id"`
+	Name         types.String             `tfsdk:"name"`
+	DatabaseName types.String             `tfsdk:"database_name"`
+	ClusterName  types.String             `tfsdk:"cluster_name"`
+	Columns      []MergeTreeColumnsModel  `tfsdk:"columns"`
+	IsReplicated types.Bool               `tfsdk:"is_replicated"`
+	OrderBy      []types.String           `tfsdk:"order_by"`
+	PartitionBy  types.String             `tfsdk:"partition_by"`
+	PrimaryKey   types.String             `tfsdk:"primary_key"`
+	Settings     []MergeTreeSettingsModel `tfsdk:"settings"`
 }
 
 type MergeTreeColumnsModel struct {
 	Name types.String `tfsdk:"name"`
 	Type types.String `tfsdk:"type"`
+}
+
+type MergeTreeSettingsModel struct {
+	Name  types.String `tfsdk:"name"`
+	Value types.String `tfsdk:"value"`
 }
 
 func (r *MergeTreeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -130,6 +136,23 @@ func (r *MergeTreeResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"settings": schema.ListNestedAttribute{
+				MarkdownDescription: "MergeTree optional settings",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Clickhouse table setting name",
+							Required:            true,
+						},
+						"value": schema.
+							StringAttribute{
+							MarkdownDescription: "Clickhouse table setting value",
+							Required:            true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -171,6 +194,13 @@ func (r *MergeTreeResource) Create(ctx context.Context, req resource.CreateReque
 	{{$size := size .OrderBy}}ORDER BY ({{range $i, $e := .OrderBy}}"{{$e.ValueString}}"{{if lt $i $size}},{{end}}{{end}})
 	{{if not .PartitionBy.IsNull}}PARTITION BY {{.PartitionBy.ValueString}}{{end}}	
 	{{if not .PrimaryKey.IsNull}}PRIMARY KEY {{.PrimaryKey.ValueString}}{{end}}
+	{{$size := size .Settings}}
+	{{with .Settings}}
+	SETTINGS
+	{{range $i, $e := .}}
+	{{.Name.ValueString}}='{{.Value.ValueString}}'{{if lt $i $size}},{{end}}
+	{{end}}
+	{{end}}
 	`
 	query, err := common.RenderTemplate(queryTemplate, data)
 	if err != nil {
