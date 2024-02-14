@@ -15,7 +15,7 @@ func TestAccSimpleUserResource(t *testing.T) {
 			{
 				Config: testAccSimpleUserConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_simpleuser.new_user", "name", "new_user"),
+					resource.TestCheckResourceAttr("clickhouseops_simpleuser.new_user", "name", "new_user"),
 				),
 			},
 		},
@@ -23,7 +23,7 @@ func TestAccSimpleUserResource(t *testing.T) {
 }
 
 const testAccSimpleUserConfig = `
-resource "clickhouse_simpleuser" "new_user" {
+resource "clickhouseops_simpleuser" "new_user" {
   name = "new_user"
   sha256_password = sha256("dummy_password")
 }

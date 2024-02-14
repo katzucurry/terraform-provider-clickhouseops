@@ -13,14 +13,14 @@ func TestAccMergeTreeResource(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: providerConfig + `
-resource "clickhouse_database" "new_database" {
+resource "clickhouseops_database" "new_database" {
 	name = "new_db"
 	comment = "new db test comment"
 }		
 
-resource "clickhouse_mergetree" "new_table1" {
+resource "clickhouseops_mergetree" "new_table1" {
 	name = "test_merge_tree"
-	database_name = clickhouse_database.new_database.name
+	database_name = clickhouseops_database.new_database.name
 	columns = [{
 		name = "a"
 		type = "String"
@@ -32,8 +32,8 @@ resource "clickhouse_mergetree" "new_table1" {
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_mergetree.new_table1", "name", "test_merge_tree"),
-					resource.TestCheckResourceAttr("clickhouse_mergetree.new_table1", "order_by.0", "a"),
+					resource.TestCheckResourceAttr("clickhouseops_mergetree.new_table1", "name", "test_merge_tree"),
+					resource.TestCheckResourceAttr("clickhouseops_mergetree.new_table1", "order_by.0", "a"),
 				),
 			},
 		},

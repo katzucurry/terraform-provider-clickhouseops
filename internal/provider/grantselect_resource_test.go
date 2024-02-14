@@ -14,7 +14,7 @@ func TestAccGrantSelectResource(t *testing.T) {
 			{
 				Config: testAccGrantSelectConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_grantselect.new_grant", "assignee", "user2"),
+					resource.TestCheckResourceAttr("clickhouseops_grantselect.new_grant", "assignee", "user2"),
 				),
 			},
 		},
@@ -22,20 +22,20 @@ func TestAccGrantSelectResource(t *testing.T) {
 }
 
 const testAccGrantSelectConfig = `
-resource "clickhouse_simpleuser" "user2" {
+resource "clickhouseops_simpleuser" "user2" {
 	name = "user2"
 	sha256_password = sha256("password2")
 }
 
-resource "clickhouse_grantselect" "new_grant" {
+resource "clickhouseops_grantselect" "new_grant" {
 	database_name = "system"
 	table_name = "tables"
 	columns_name = ["database", "name"]
-	assignee = clickhouse_simpleuser.user2.name
+	assignee = clickhouseops_simpleuser.user2.name
 }
 
-resource "clickhouse_grantselect" "new_grant_all" {
+resource "clickhouseops_grantselect" "new_grant_all" {
 	database_name = "system"
-	assignee = clickhouse_simpleuser.user2.name
+	assignee = clickhouseops_simpleuser.user2.name
 }
 `

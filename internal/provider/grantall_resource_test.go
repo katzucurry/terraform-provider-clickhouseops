@@ -15,7 +15,7 @@ func TestAccGrantAllResource(t *testing.T) {
 			{
 				Config: testAccGrantAllConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_grantall.new_grant_all", "assignee", "user3"),
+					resource.TestCheckResourceAttr("clickhouseops_grantall.new_grant_all", "assignee", "user3"),
 				),
 			},
 		},
@@ -23,12 +23,12 @@ func TestAccGrantAllResource(t *testing.T) {
 }
 
 const testAccGrantAllConfig = `
-resource "clickhouse_simpleuser" "user3" {
+resource "clickhouseops_simpleuser" "user3" {
 	name = "user3"
 	sha256_password = sha256("password3")
 }
 
-resource "clickhouse_grantall" "new_grant_all" {
-	assignee = clickhouse_simpleuser.user3.name
+resource "clickhouseops_grantall" "new_grant_all" {
+	assignee = clickhouseops_simpleuser.user3.name
 }
 `

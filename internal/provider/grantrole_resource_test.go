@@ -14,8 +14,8 @@ func TestAccGrantRoleResource(t *testing.T) {
 			{
 				Config: testAccGrantRoleConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_grantrole.user1_role1", "user_name", "user1"),
-					resource.TestCheckResourceAttr("clickhouse_grantrole.user1_role1", "role_name", "role1"),
+					resource.TestCheckResourceAttr("clickhouseops_grantrole.user1_role1", "user_name", "user1"),
+					resource.TestCheckResourceAttr("clickhouseops_grantrole.user1_role1", "role_name", "role1"),
 				),
 			},
 		},
@@ -23,17 +23,17 @@ func TestAccGrantRoleResource(t *testing.T) {
 }
 
 const testAccGrantRoleConfig = `
-resource "clickhouse_simpleuser" "user1" {
+resource "clickhouseops_simpleuser" "user1" {
 	name = "user1"
 	sha256_password = sha256("password1")
 }
 
-resource "clickhouse_simplerole" "role1" {
+resource "clickhouseops_simplerole" "role1" {
 	name = "role1"
 }
 
-resource "clickhouse_grantrole" "user1_role1" {
-	user_name = clickhouse_simpleuser.user1.name
-	role_name = clickhouse_simplerole.role1.name
+resource "clickhouseops_grantrole" "user1_role1" {
+	user_name = clickhouseops_simpleuser.user1.name
+	role_name = clickhouseops_simplerole.role1.name
 }
 `

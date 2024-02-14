@@ -1,4 +1,4 @@
-module github.com/awesomenessnil/terraform-provider-clickhouse
+module github.com/awesomenessnil/terraform-provider-clickhouseops
 
 go 1.19
 

@@ -14,7 +14,7 @@ func TestAccRevokeSelectResource(t *testing.T) {
 			{
 				Config: testAccRevokeSelectConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_revokeselect.new_revoke", "assignee", "user2"),
+					resource.TestCheckResourceAttr("clickhouseops_revokeselect.new_revoke", "assignee", "user2"),
 				),
 			},
 		},
@@ -22,15 +22,15 @@ func TestAccRevokeSelectResource(t *testing.T) {
 }
 
 const testAccRevokeSelectConfig = `
-resource "clickhouse_simpleuser" "user2" {
+resource "clickhouseops_simpleuser" "user2" {
 	name = "user2"
 	sha256_password = sha256("password2")
 }
 
-resource "clickhouse_revokeselect" "new_revoke" {
+resource "clickhouseops_revokeselect" "new_revoke" {
 	database_name = "system"
 	table_name = "tables"
 	columns_name = ["database", "name"]
-	assignee = clickhouse_simpleuser.user2.name
+	assignee = clickhouseops_simpleuser.user2.name
 }
 `

@@ -15,7 +15,7 @@ func TestAccSimpleRoleResource(t *testing.T) {
 			{
 				Config: testAccSimpleRoleConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_simplerole.new_role", "name", "new_role"),
+					resource.TestCheckResourceAttr("clickhouseops_simplerole.new_role", "name", "new_role"),
 				),
 			},
 		},
@@ -23,7 +23,7 @@ func TestAccSimpleRoleResource(t *testing.T) {
 }
 
 const testAccSimpleRoleConfig = `
-resource "clickhouse_simplerole" "new_role" {
+resource "clickhouseops_simplerole" "new_role" {
   name = "new_role"
 }
 `

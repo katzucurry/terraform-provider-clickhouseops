@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/awesomenessnil/terraform-provider-clickhouse/internal/common"
+	"github.com/awesomenessnil/terraform-provider-clickhouseops/internal/common"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -38,7 +38,7 @@ type S3DescribeDataSourceModel struct {
 	AwsSecretAccessKey  types.String       `tfsdk:"aws_secret_access_key"`
 	Format              types.String       `tfsdk:"format"`
 	Compression         types.String       `tfsdk:"compression"`
-	ClickhouseColumns   []ClickhouseColumn `tfsdk:"clickhouse_columns"`
+	ClickhouseColumns   []ClickhouseColumn `tfsdk:"clickhouseops_columns"`
 }
 
 type ClickhouseColumn struct {
@@ -98,7 +98,7 @@ func (d *S3DescribeDataSource) Schema(ctx context.Context, req datasource.Schema
 				MarkdownDescription: "data compression format, ie. gzip, zip, etc.",
 				Optional:            true,
 			},
-			"clickhouse_columns": schema.ListNestedAttribute{
+			"clickhouseops_columns": schema.ListNestedAttribute{
 				MarkdownDescription: "PostgreSQL columns converted to Clickhouse columns",
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
