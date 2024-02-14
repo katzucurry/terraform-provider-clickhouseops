@@ -15,8 +15,8 @@ func TestAccReplacingMergeTreeResource(t *testing.T) {
 			{
 				Config: testAccReplacingMergeTreeResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_replacingmergetree.test", "name", "test"),
-					resource.TestCheckResourceAttr("clickhouse_replacingmergetree.test", "order_by.0", "a"),
+					resource.TestCheckResourceAttr("clickhouseops_replacingmergetree.test", "name", "test"),
+					resource.TestCheckResourceAttr("clickhouseops_replacingmergetree.test", "order_by.0", "a"),
 				),
 			},
 		},
@@ -24,13 +24,13 @@ func TestAccReplacingMergeTreeResource(t *testing.T) {
 }
 
 const testAccReplacingMergeTreeResourceConfig = `
-resource "clickhouse_database" "test" {
+resource "clickhouseops_database" "test" {
 	name = "test"
 }
 
-resource "clickhouse_replacingmergetree" "test" {
+resource "clickhouseops_replacingmergetree" "test" {
   name = "test"
-  database_name = clickhouse_database.test.name
+  database_name = clickhouseops_database.test.name
   columns = [{
 	name = "a"
 	type = "String"

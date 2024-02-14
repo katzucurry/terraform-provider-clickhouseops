@@ -13,23 +13,23 @@ func TestAccViewResource(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: providerConfig + `
-resource "clickhouse_database" "new_database" {
+resource "clickhouseops_database" "new_database" {
 	name = "new_db"
 	comment = "new db test comment"
 }		
 
-resource "clickhouse_view" "new_view" {
+resource "clickhouseops_view" "new_view" {
 	name = "test"
-	database_name = clickhouse_database.new_database.name
+	database_name = clickhouseops_database.new_database.name
 	sql = <<EOT
 SELECT 1
 EOT
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_view.new_view", "name", "test"),
-					resource.TestCheckResourceAttr("clickhouse_view.new_view", "database_name", "new_db"),
-					resource.TestCheckResourceAttr("clickhouse_view.new_view", "sql", "SELECT 1\n"),
+					resource.TestCheckResourceAttr("clickhouseops_view.new_view", "name", "test"),
+					resource.TestCheckResourceAttr("clickhouseops_view.new_view", "database_name", "new_db"),
+					resource.TestCheckResourceAttr("clickhouseops_view.new_view", "sql", "SELECT 1\n"),
 				),
 			},
 		},

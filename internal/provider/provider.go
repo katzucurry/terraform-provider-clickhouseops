@@ -40,7 +40,7 @@ type ClickhouseProviderModel struct {
 }
 
 func (p *ClickhouseProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "clickhouse"
+	resp.TypeName = "clickhouseops"
 	resp.Version = p.version
 }
 

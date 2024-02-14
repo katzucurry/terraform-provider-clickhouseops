@@ -13,14 +13,14 @@ func TestAccDatabaseResource(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: providerConfig + `
-resource "clickhouse_database" "test" {
+resource "clickhouseops_database" "test" {
 	name = "test"
 	comment = "test comment"
 }				
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_database.test", "name", "test"),
-					resource.TestCheckResourceAttr("clickhouse_database.test", "comment", "test comment"),
+					resource.TestCheckResourceAttr("clickhouseops_database.test", "name", "test"),
+					resource.TestCheckResourceAttr("clickhouseops_database.test", "comment", "test comment"),
 				),
 			},
 		},

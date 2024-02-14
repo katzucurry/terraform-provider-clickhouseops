@@ -15,7 +15,7 @@ func TestAccPostgreSQLResource(t *testing.T) {
 			{
 				Config: testAccPostgreSQLResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_postgresql.new_table", "name", "new_table"),
+					resource.TestCheckResourceAttr("clickhouseops_postgresql.new_table", "name", "new_table"),
 				),
 			},
 		},
@@ -24,13 +24,13 @@ func TestAccPostgreSQLResource(t *testing.T) {
 
 const (
 	testAccPostgreSQLResourceConfig = `
-resource "clickhouse_database" "new_database" {
+resource "clickhouseops_database" "new_database" {
 	name = "new_database"
 }
 
-resource "clickhouse_postgresql" "new_table" {
+resource "clickhouseops_postgresql" "new_table" {
 	name = "new_table"
-	database_name = clickhouse_database.new_database.name
+	database_name = clickhouseops_database.new_database.name
 	columns = [{
 		name = "a"
 		type = "String"

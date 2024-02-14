@@ -16,7 +16,7 @@ func TestAccS3QueueResource(t *testing.T) {
 			{
 				Config: testAccS3QueueConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_s3queue.new_table", "name", "new_table"),
+					resource.TestCheckResourceAttr("clickhouseops_s3queue.new_table", "name", "new_table"),
 				),
 			},
 		},
@@ -24,13 +24,13 @@ func TestAccS3QueueResource(t *testing.T) {
 }
 
 const testAccS3QueueConfig = `
-resource "clickhouse_database" "new_database" {
+resource "clickhouseops_database" "new_database" {
 	name = "new_database"
 }
 
-resource "clickhouse_s3queue" "new_table" {
+resource "clickhouseops_s3queue" "new_table" {
   name = "new_table"
-  database_name = clickhouse_database.new_database.name
+  database_name = clickhouseops_database.new_database.name
   columns = [{
 	name = "a"
 	type = "String"

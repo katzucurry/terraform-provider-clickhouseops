@@ -16,7 +16,7 @@ func TestAccNamedCollectionResource(t *testing.T) {
 			{
 				Config: testAccNamedCollectionResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("clickhouse_namedcollection.test", "name", "test"),
+					resource.TestCheckResourceAttr("clickhouseops_namedcollection.test", "name", "test"),
 				),
 			},
 		},
@@ -24,7 +24,7 @@ func TestAccNamedCollectionResource(t *testing.T) {
 }
 
 const testAccNamedCollectionResourceConfig = `
-resource "clickhouse_namedcollection" "test" {
+resource "clickhouseops_namedcollection" "test" {
 	name = "test"
 	keyvaluepairs = [{
 	  key = "host"
