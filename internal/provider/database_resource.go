@@ -179,7 +179,7 @@ func (r *DatabaseResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	queryTemplate := `DROP DATABASE "{{.Name.ValueString}}" {{if .ClusterName}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}}`
+	queryTemplate := `DROP DATABASE "{{.Name.ValueString}}" {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}}`
 	query, err := common.RenderTemplate(queryTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError(

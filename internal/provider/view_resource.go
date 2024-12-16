@@ -206,7 +206,7 @@ func (r *ViewResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	queryTemplate := `DROP VIEW IF EXISTS "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}" {{if .ClusterName}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}}`
+	queryTemplate := `DROP VIEW IF EXISTS "{{.DatabaseName.ValueString}}"."{{.Name.ValueString}}" {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}}`
 	query, err := common.RenderTemplate(queryTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())

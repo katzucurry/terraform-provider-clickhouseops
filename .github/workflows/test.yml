@@ -57,6 +57,17 @@ jobs:
     name: Terraform Provider Acceptance Tests
     needs: build
     runs-on: ubuntu-latest
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server
+        ports:
+          - 9000:9000
+        # Set health checks to wait until clickhouse has started
+        options: >-
+          --health-cmd "clickhouse-client --database=system --query='select * from databases'"
+          --health-interval 15s
+          --health-timeout 5s
+          --health-retries 5
     timeout-minutes: 15
     strategy:
       fail-fast: false
