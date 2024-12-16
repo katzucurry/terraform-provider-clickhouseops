@@ -5,9 +5,9 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -29,7 +29,7 @@ func NewDatabaseResource() resource.Resource {
 }
 
 type DatabaseResource struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 type DatabaseResourceModel struct {
@@ -84,12 +84,12 @@ func (r *DatabaseResource) Configure(ctx context.Context, req resource.Configure
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 		return
 	}
@@ -115,7 +115,7 @@ func (r *DatabaseResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse Database",
@@ -142,7 +142,7 @@ func (r *DatabaseResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	if !r.existsDatabase(data.Name.ValueString(), data.ClusterName.ValueString()) {
+	if !r.existsDatabase(ctx, data.Name.ValueString(), data.ClusterName.ValueString()) {
 		tflog.Trace(ctx, "Database doesn't exists anymore, it should recreate it")
 		resp.State.RemoveResource(ctx)
 		return
@@ -189,7 +189,7 @@ func (r *DatabaseResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Clickhouse Database",
@@ -203,17 +203,17 @@ func (r *DatabaseResource) ImportState(ctx context.Context, req resource.ImportS
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *DatabaseResource) existsDatabase(databaseName string, clusterName string) bool {
+func (r *DatabaseResource) existsDatabase(ctx context.Context, databaseName string, clusterName string) bool {
 	if clusterName != "" {
-		return r.existsDatabaseOnCluster(databaseName, clusterName)
+		return r.existsDatabaseOnCluster(ctx, databaseName, clusterName)
 	}
-	return r.existsDatabaseSimple(databaseName)
+	return r.existsDatabaseSimple(ctx, databaseName)
 
 }
 
-func (r *DatabaseResource) existsDatabaseSimple(databaseName string) bool {
-	var cnt int
-	err := r.db.QueryRow("SELECT count(1) FROM system.databases where `name` = ?", databaseName).Scan(&cnt)
+func (r *DatabaseResource) existsDatabaseSimple(ctx context.Context, databaseName string) bool {
+	var cnt uint64
+	err := r.db.QueryRow(ctx, "SELECT count(1) FROM system.databases where `name` = ?", databaseName).Scan(&cnt)
 	if err != nil {
 		return false
 	}
@@ -223,7 +223,7 @@ func (r *DatabaseResource) existsDatabaseSimple(databaseName string) bool {
 	return true
 }
 
-func (r *DatabaseResource) existsDatabaseOnCluster(databaseName string, clusterName string) bool {
+func (r *DatabaseResource) existsDatabaseOnCluster(ctx context.Context, databaseName string, clusterName string) bool {
 	var hosts string
 	var cnt_hosts int
 	clusterQuery := `
@@ -231,7 +231,7 @@ func (r *DatabaseResource) existsDatabaseOnCluster(databaseName string, clusterN
 	FROM system.clusters
 	WHERE "cluster" = ?
 	GROUP BY "cluster"`
-	err := r.db.QueryRow(clusterQuery, clusterName).Scan(&hosts, &cnt_hosts)
+	err := r.db.QueryRow(ctx, clusterQuery, clusterName).Scan(&hosts, &cnt_hosts)
 	if err != nil {
 		return false
 	}
@@ -239,7 +239,7 @@ func (r *DatabaseResource) existsDatabaseOnCluster(databaseName string, clusterN
 	query := `SELECT count(1)
 	FROM remote(?, system, "databases")
 	WHERE "name" = ?`
-	err = r.db.QueryRow(query, hosts, databaseName).Scan(&cnt)
+	err = r.db.QueryRow(ctx, query, hosts, databaseName).Scan(&cnt)
 	if err != nil {
 		return false
 	}

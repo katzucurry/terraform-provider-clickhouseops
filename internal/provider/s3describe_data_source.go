@@ -5,9 +5,9 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,7 +24,7 @@ func NewS3DescribeDataSource() datasource.DataSource {
 
 // S3DescribeDataSource defines the data source implementation.
 type S3DescribeDataSource struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 // S3DescribeDataSourceModel describes the data source data model.
@@ -123,12 +123,12 @@ func (d *S3DescribeDataSource) Configure(ctx context.Context, req datasource.Con
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -187,7 +187,7 @@ func (d *S3DescribeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	rows, err := d.db.Query(*query)
+	rows, err := d.db.Query(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error trying to get Clickhouse columns from S3 path",

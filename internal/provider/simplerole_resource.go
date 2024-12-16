@@ -5,9 +5,9 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -29,7 +29,7 @@ func NewSimpleRole() resource.Resource {
 }
 
 type SimpleRole struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 type SimpleRoleModel struct {
@@ -76,12 +76,12 @@ func (r *SimpleRole) Configure(ctx context.Context, req resource.ConfigureReques
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -119,7 +119,7 @@ func (r *SimpleRole) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse SimpleRole",
@@ -182,7 +182,7 @@ func (r *SimpleRole) Delete(ctx context.Context, req resource.DeleteRequest, res
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return
