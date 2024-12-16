@@ -5,9 +5,9 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -29,7 +29,7 @@ func NewMaterializedView() resource.Resource {
 }
 
 type MaterializedView struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 type MaterializedViewModel struct {
@@ -108,12 +108,12 @@ func (r *MaterializedView) Configure(ctx context.Context, req resource.Configure
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -157,7 +157,7 @@ func (r *MaterializedView) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse MaterializedView",
@@ -219,7 +219,7 @@ func (r *MaterializedView) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return

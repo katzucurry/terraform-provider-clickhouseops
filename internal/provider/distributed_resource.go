@@ -4,9 +4,9 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -28,7 +28,7 @@ func NewDistributed() resource.Resource {
 }
 
 type Distributed struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 type DistributedModel struct {
@@ -165,12 +165,12 @@ func (d *Distributed) Configure(ctx context.Context, req resource.ConfigureReque
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -231,7 +231,7 @@ func (d *Distributed) Create(ctx context.Context, req resource.CreateRequest, re
 
 	tflog.Info(ctx, *query)
 
-	_, err = d.db.Exec(*query)
+	err = d.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse Distributed Table",
@@ -295,7 +295,7 @@ func (d *Distributed) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	_, err = d.db.Exec(*query)
+	err = d.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return

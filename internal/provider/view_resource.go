@@ -5,10 +5,10 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -30,7 +30,7 @@ func NewViewResource() resource.Resource {
 }
 
 type ViewResource struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 type ViewResourceModel struct {
@@ -90,12 +90,12 @@ func (r *ViewResource) Configure(ctx context.Context, req resource.ConfigureRequ
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -122,7 +122,7 @@ func (r *ViewResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse View",
@@ -148,25 +148,25 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if !data.ClusterName.IsNull() && !r.existViewInCluster(data.DatabaseName.ValueString(), data.Name.ValueString(), data.ClusterName.ValueString()) {
+	if !data.ClusterName.IsNull() && !r.existViewInCluster(ctx, data.DatabaseName.ValueString(), data.Name.ValueString(), data.ClusterName.ValueString()) {
 		tflog.Trace(ctx, "View doesn't exists in one or more Clickhouse nodes")
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	as_select, err := r.readView(data.DatabaseName.ValueString(), data.Name.ValueString())
+	as_select, err := r.readView(ctx, data.DatabaseName.ValueString(), data.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return
 	}
 
-	formatedAsSelect, err := r.validateQuery(*as_select)
+	formatedAsSelect, err := r.validateQuery(ctx, *as_select)
 	if err != nil {
 		tflog.Trace(ctx, "Could not validate SQL query stored in clickhouse, recreating")
 		resp.State.RemoveResource(ctx)
 		return
 	}
 
-	validateQuery, err := r.validateQuery(data.SQL.ValueString())
+	validateQuery, err := r.validateQuery(ctx, data.SQL.ValueString())
 	if err != nil {
 		tflog.Trace(ctx, "Could not validate SQL query stored in terraform state")
 		resp.State.RemoveResource(ctx)
@@ -213,7 +213,7 @@ func (r *ViewResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return
@@ -231,16 +231,16 @@ type ReadViewResponse struct {
 	SQL          string
 }
 
-func (r *ViewResource) readView(databaseName string, viewName string) (*string, error) {
+func (r *ViewResource) readView(ctx context.Context, databaseName string, viewName string) (*string, error) {
 	var as_select string
-	err := r.db.QueryRow("SELECT as_select FROM system.`tables` WHERE `engine` = 'View' AND `database` = ? AND name = ?", databaseName, viewName).Scan(&as_select)
+	err := r.db.QueryRow(ctx, "SELECT as_select FROM system.`tables` WHERE `engine` = 'View' AND `database` = ? AND name = ?", databaseName, viewName).Scan(&as_select)
 	if err != nil {
 		return nil, err
 	}
 	return &as_select, nil
 }
 
-func (r *ViewResource) existViewInCluster(databaseName string, viewName string, clusterName string) bool {
+func (r *ViewResource) existViewInCluster(ctx context.Context, databaseName string, viewName string, clusterName string) bool {
 	var hosts string
 	var cnt_hosts int
 	clusterQuery := `
@@ -248,7 +248,7 @@ func (r *ViewResource) existViewInCluster(databaseName string, viewName string, 
 	FROM system.clusters
 	WHERE "cluster" = ?
 	GROUP BY "cluster"`
-	err := r.db.QueryRow(clusterQuery, clusterName).Scan(&hosts, &cnt_hosts)
+	err := r.db.QueryRow(ctx, clusterQuery, clusterName).Scan(&hosts, &cnt_hosts)
 	if err != nil {
 		return false
 	}
@@ -256,7 +256,7 @@ func (r *ViewResource) existViewInCluster(databaseName string, viewName string, 
 	query := `SELECT count(1)
 	FROM remote(?, system, "tables")
 	WHERE "engine" = 'View' AND  "database" = ? AND "name" = ?`
-	err = r.db.QueryRow(query, hosts, databaseName, viewName).Scan(&cnt)
+	err = r.db.QueryRow(ctx, query, hosts, databaseName, viewName).Scan(&cnt)
 	if err != nil {
 		return false
 	}
@@ -266,9 +266,9 @@ func (r *ViewResource) existViewInCluster(databaseName string, viewName string, 
 	return true
 }
 
-func (r *ViewResource) validateQuery(sql string) (*string, error) {
+func (r *ViewResource) validateQuery(ctx context.Context, sql string) (*string, error) {
 	validationQuery := "EXPLAIN SYNTAX " + sql
-	results, err := r.db.Query(validationQuery)
+	results, err := r.db.Query(ctx, validationQuery)
 	if err != nil {
 		return nil, err
 	}

@@ -5,9 +5,11 @@ package common
 
 import (
 	"bytes"
-	"database/sql"
+	"context"
 	"reflect"
 	"text/template"
+
+	"github.com/ClickHouse/clickhouse-go/v2"
 )
 
 var functions = template.FuncMap{
@@ -32,9 +34,9 @@ func RenderTemplate(queryTemplate string, input any) (*string, error) {
 	return &query, nil
 }
 
-func ReadCluster(db *sql.DB, uuid string) (*string, error) {
+func ReadCluster(ctx context.Context, db clickhouse.Conn, uuid string) (*string, error) {
 	var cluster string
-	err := db.QueryRow("SELECT `cluster` FROM system.distributed_ddl_queue where query like ?", "%"+uuid+"%").Scan(&cluster)
+	err := db.QueryRow(ctx, "SELECT `cluster` FROM system.distributed_ddl_queue where query like ?", "%"+uuid+"%").Scan(&cluster)
 	if err != nil {
 		return nil, err
 	}

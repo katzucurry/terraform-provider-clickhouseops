@@ -5,9 +5,9 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -30,7 +30,7 @@ func NewNamedCollection() resource.Resource {
 }
 
 type NamedCollection struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 type NamedCollectionModel struct {
@@ -132,12 +132,12 @@ func (r *NamedCollection) Configure(ctx context.Context, req resource.ConfigureR
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -187,16 +187,16 @@ func (r *NamedCollection) Create(ctx context.Context, req resource.CreateRequest
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse NamedCollection",
-			"Could not render DDL, "+*query+" unexpected error: "+err.Error(),
+			"Could not render DDL, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Clickhouse NamedCollection",
-			"Could not render DDL, "+*query+" unexpected error: "+err.Error(),
+			"Could not render DDL, unexpected error: "+err.Error(),
 		)
 		return
 	}
@@ -254,7 +254,7 @@ func (r *NamedCollection) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return

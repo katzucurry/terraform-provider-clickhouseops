@@ -5,10 +5,10 @@ package provider
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -30,7 +30,7 @@ func NewRevokeSelect() resource.Resource {
 }
 
 type RevokeSelect struct {
-	db *sql.DB
+	db clickhouse.Conn
 }
 
 type RevokeSelectModel struct {
@@ -99,12 +99,12 @@ func (r *RevokeSelect) Configure(ctx context.Context, req resource.ConfigureRequ
 		return
 	}
 
-	db, ok := req.ProviderData.(*sql.DB)
+	db, ok := req.ProviderData.(clickhouse.Conn)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *sql.DB, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected clickhouse.Conn, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -139,7 +139,7 @@ func (r *RevokeSelect) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Granting Permissions",
@@ -208,7 +208,7 @@ func (r *RevokeSelect) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	_, err = r.db.Exec(*query)
+	err = r.db.Exec(ctx, *query)
 	if err != nil {
 		resp.Diagnostics.AddError("", ""+err.Error())
 		return

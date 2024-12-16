@@ -118,7 +118,7 @@ func (p *ClickhouseProvider) Configure(ctx context.Context, req provider.Configu
 		secureConfig = &tls.Config{InsecureSkipVerify: false}
 	}
 
-	db := clickhouse.OpenDB(&clickhouse.Options{
+	db, err := clickhouse.Open(&clickhouse.Options{
 		Addr: []string{fmt.Sprintf("%s:%d", host, port)},
 		Auth: clickhouse.Auth{
 			Username: username,
