@@ -1,6 +1,6 @@
-provider "clickhouse" {}
+provider "clickhouseops" {}
 
-resource "clickhouse_database" "test" {
+resource "clickhouseops_database" "test" {
   name    = "test"
   comment = "test comment"
 }

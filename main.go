@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package main
 
 import (
@@ -5,8 +8,8 @@ import (
 	"flag"
 	"log"
 
-	"github.com/awesomenessnil/terraform-provider-clickhouseops/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/katzucurry/terraform-provider-clickhouseops/internal/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -36,7 +39,7 @@ func main() {
 
 	opts := providerserver.ServeOpts{
 		// TODO: Update this string with the published name of your provider.
-		Address: "registry.terraform.io/awesomenessnil/terraform-provider-ch",
+		Address: "registry.terraform.io/katzucurry/clickhouseops",
 		Debug:   debug,
 	}
 

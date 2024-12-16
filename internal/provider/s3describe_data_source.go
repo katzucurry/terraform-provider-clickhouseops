@@ -8,11 +8,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/awesomenessnil/terraform-provider-clickhouseops/internal/common"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/katzucurry/terraform-provider-clickhouseops/internal/common"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
