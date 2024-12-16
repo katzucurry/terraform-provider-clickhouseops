@@ -1,8 +1,8 @@
-resource "clickhouse_database" "test" {
+resource "clickhouseops_database" "test" {
   name = "test"
 }
 
-resource "clickhouse_namedcollection" "test" {
+resource "clickhouseops_namedcollection" "test" {
   name = "test"
   keyvaluepairs = [{
     key   = "host"

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
@@ -5,7 +8,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/awesomenessnil/terraform-provider-clickhouseops/internal/common"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/katzucurry/terraform-provider-clickhouseops/internal/common"
 )
 
 var (
@@ -176,7 +179,7 @@ func (r *DatabaseResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	queryTemplate := `DROP DATABASE "{{.Name.ValueString}}" {{if .ClusterName}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}}`
+	queryTemplate := `DROP DATABASE "{{.Name.ValueString}}" {{if not .ClusterName.IsNull}} ON CLUSTER '{{.ClusterName.ValueString}}'{{end}}`
 	query, err := common.RenderTemplate(queryTemplate, data)
 	if err != nil {
 		resp.Diagnostics.AddError(

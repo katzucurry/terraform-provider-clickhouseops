@@ -1,10 +1,10 @@
-provider "clickhouse" {}
+provider "clickhouseops" {}
 
-resource "clickhouse_database" "test" {
+resource "clickhouseops_database" "test" {
   name = "test"
 }
 
-resource "clickhouse_view" "new_view" {
+resource "clickhouseops_view" "new_view" {
   name          = "new_view"
   database_name = clickhouse_database.test.name
   sql           = <<EOT

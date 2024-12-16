@@ -1,11 +1,11 @@
-provider "clickhouse" {}
+provider "clickhouseops" {}
 
-resource "clickhouse_database" "new_database" {
+resource "clickhouseops_database" "new_database" {
   name    = "new_db"
   comment = "new db test comment"
 }
 
-resource "clickhouse_replacingmergetree" "new_table" {
+resource "clickhouseops_replacingmergetree" "new_table" {
   name          = "new_table"
   database_name = clickhouse_database.new_database.name
   columns = [{

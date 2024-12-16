@@ -1,11 +1,11 @@
-provider "clickhouse" {}
+provider "clickhouseops" {}
 
-resource "clickhouse_database" "new_database" {
+resource "clickhouseops_database" "new_database" {
   name    = "new_db"
   comment = "new db test comment"
 }
 
-resource "clickhouse_kafkaengine" "new_table2" {
+resource "clickhouseops_kafkaengine" "new_table2" {
   name          = "test_kafka_engine"
   database_name = clickhouse_database.new_database.name
   columns = [{

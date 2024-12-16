@@ -13,7 +13,7 @@ description: |-
 ## Example Usage
 
 ```terraform
-provider "clickhouse" {
+provider "clickhouseops" {
   host     = "localhost"
   port     = 9000
   username = "default"
