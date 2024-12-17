@@ -6,7 +6,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -148,34 +147,6 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if !data.ClusterName.IsNull() && !r.existViewInCluster(ctx, data.DatabaseName.ValueString(), data.Name.ValueString(), data.ClusterName.ValueString()) {
-		tflog.Trace(ctx, "View doesn't exists in one or more Clickhouse nodes")
-		resp.State.RemoveResource(ctx)
-		return
-	}
-	as_select, err := r.readView(ctx, data.DatabaseName.ValueString(), data.Name.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("", ""+err.Error())
-		return
-	}
-
-	formatedAsSelect, err := r.validateQuery(ctx, *as_select)
-	if err != nil {
-		tflog.Trace(ctx, "Could not validate SQL query stored in clickhouse, recreating")
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	validateQuery, err := r.validateQuery(ctx, data.SQL.ValueString())
-	if err != nil {
-		tflog.Trace(ctx, "Could not validate SQL query stored in terraform state")
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	if *formatedAsSelect != *validateQuery {
-		data.SQL = types.StringValue(*formatedAsSelect)
-	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -229,58 +200,4 @@ type ReadViewResponse struct {
 	Name         string
 	DatabaseName string
 	SQL          string
-}
-
-func (r *ViewResource) readView(ctx context.Context, databaseName string, viewName string) (*string, error) {
-	var as_select string
-	err := r.db.QueryRow(ctx, "SELECT as_select FROM system.`tables` WHERE `engine` = 'View' AND `database` = ? AND name = ?", databaseName, viewName).Scan(&as_select)
-	if err != nil {
-		return nil, err
-	}
-	return &as_select, nil
-}
-
-func (r *ViewResource) existViewInCluster(ctx context.Context, databaseName string, viewName string, clusterName string) bool {
-	var hosts string
-	var cnt_hosts int
-	clusterQuery := `
-	SELECT arrayStringConcat(groupArray(host_name), ',') as hosts, count(1) as cnt_hosts
-	FROM system.clusters
-	WHERE "cluster" = ?
-	GROUP BY "cluster"`
-	err := r.db.QueryRow(ctx, clusterQuery, clusterName).Scan(&hosts, &cnt_hosts)
-	if err != nil {
-		return false
-	}
-	var cnt int
-	query := `SELECT count(1)
-	FROM remote(?, system, "tables")
-	WHERE "engine" = 'View' AND  "database" = ? AND "name" = ?`
-	err = r.db.QueryRow(ctx, query, hosts, databaseName, viewName).Scan(&cnt)
-	if err != nil {
-		return false
-	}
-	if cnt != cnt_hosts {
-		return false
-	}
-	return true
-}
-
-func (r *ViewResource) validateQuery(ctx context.Context, sql string) (*string, error) {
-	validationQuery := "EXPLAIN SYNTAX " + sql
-	results, err := r.db.Query(ctx, validationQuery)
-	if err != nil {
-		return nil, err
-	}
-
-	var parsedQuery []string
-	for results.Next() {
-		var explain string
-		if err := results.Scan(&explain); err != nil {
-			return nil, err
-		}
-		parsedQuery = append(parsedQuery, explain)
-	}
-	ret := strings.Join(parsedQuery, "\n") + "\n"
-	return &ret, nil
 }
