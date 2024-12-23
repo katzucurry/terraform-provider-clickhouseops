@@ -142,12 +142,6 @@ func (r *DatabaseResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	if !r.existsDatabase(ctx, data.Name.ValueString(), data.ClusterName.ValueString()) {
-		tflog.Trace(ctx, "Database doesn't exists anymore, it should recreate it")
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -164,9 +158,6 @@ func (r *DatabaseResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (r *DatabaseResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -201,50 +192,4 @@ func (r *DatabaseResource) Delete(ctx context.Context, req resource.DeleteReques
 
 func (r *DatabaseResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-func (r *DatabaseResource) existsDatabase(ctx context.Context, databaseName string, clusterName string) bool {
-	if clusterName != "" {
-		return r.existsDatabaseOnCluster(ctx, databaseName, clusterName)
-	}
-	return r.existsDatabaseSimple(ctx, databaseName)
-
-}
-
-func (r *DatabaseResource) existsDatabaseSimple(ctx context.Context, databaseName string) bool {
-	var cnt uint64
-	err := r.db.QueryRow(ctx, "SELECT count(1) FROM system.databases where `name` = ?", databaseName).Scan(&cnt)
-	if err != nil {
-		return false
-	}
-	if cnt != 1 {
-		return false
-	}
-	return true
-}
-
-func (r *DatabaseResource) existsDatabaseOnCluster(ctx context.Context, databaseName string, clusterName string) bool {
-	var hosts string
-	var cnt_hosts int
-	clusterQuery := `
-	SELECT arrayStringConcat(groupArray(host_name), ',') as hosts, count(1) as cnt_hosts
-	FROM system.clusters
-	WHERE "cluster" = ?
-	GROUP BY "cluster"`
-	err := r.db.QueryRow(ctx, clusterQuery, clusterName).Scan(&hosts, &cnt_hosts)
-	if err != nil {
-		return false
-	}
-	var cnt int
-	query := `SELECT count(1)
-	FROM remote(?, system, "databases")
-	WHERE "name" = ?`
-	err = r.db.QueryRow(ctx, query, hosts, databaseName).Scan(&cnt)
-	if err != nil {
-		return false
-	}
-	if cnt != cnt_hosts {
-		return false
-	}
-	return true
 }
